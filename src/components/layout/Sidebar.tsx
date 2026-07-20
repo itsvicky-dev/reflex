@@ -23,8 +23,8 @@ function FlatLink({ item, collapsed }: { item: NavLinkType; collapsed: boolean }
       title={collapsed ? item.label : undefined}
       className={({ isActive }) =>
         clsx(
-          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
-          collapsed && 'justify-center px-0',
+          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm  transition',
+          collapsed && 'justify-center px-0 py-1.5',
           isActive ? 'bg-accent/10 text-accent' : 'text-ink hover:bg-surface-hover',
         )
       }
@@ -51,7 +51,7 @@ function GroupRow({ group, collapsed }: { group: NavGroup; collapsed: boolean })
         title={group.label}
         className={({ isActive }) =>
           clsx(
-            'flex items-center justify-center rounded-lg px-0 py-2 text-sm font-medium transition',
+            'flex items-center justify-center rounded-lg px-0 py-1.5 text-sm font-medium transition',
             isActive ? 'bg-accent/10 text-accent' : 'text-ink hover:bg-surface-hover',
           )
         }
@@ -66,7 +66,7 @@ function GroupRow({ group, collapsed }: { group: NavGroup; collapsed: boolean })
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink transition hover:bg-surface-hover"
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-ink transition hover:bg-surface-hover"
       >
         <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
         <span className="flex-1 truncate text-left">{group.label}</span>
@@ -82,7 +82,7 @@ function GroupRow({ group, collapsed }: { group: NavGroup; collapsed: boolean })
               className={({ isActive }) =>
                 clsx(
                   'block rounded-lg px-3 py-1.5 text-sm transition',
-                  isActive ? 'bg-accent/10 font-medium text-accent' : 'text-ink-muted hover:bg-surface-hover hover:text-ink',
+                  isActive ? 'bg-gray-100 font-medium text-ink' : 'text-ink-muted hover:bg-surface-hover hover:text-ink',
                 )
               }
             >
@@ -118,7 +118,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
         collapsed ? 'w-20' : 'w-60',
       )}
     >
-      <div className={clsx('flex items-center gap-2 py-3', collapsed ? 'justify-center px-2' : 'px-3')}>
+      <div className={clsx('flex items-center gap-2', collapsed ? 'justify-center px-2 py-2' : 'px-3 py-3')}>
         {!collapsed && (
           <button type="button" className="flex flex-1 items-center gap-2 rounded-lg px-1 py-1 text-left hover:bg-surface-hover">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-sm font-bold text-accent-content">
@@ -127,11 +127,6 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
             <span className="truncate text-sm font-semibold text-heading">WeLe IntelliTech</span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
           </button>
-        )}
-        {collapsed && (
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent text-sm font-bold text-accent-content">
-            W
-          </div>
         )}
         <button
           type="button"
@@ -143,14 +138,14 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
         </button>
       </div>
 
-      <nav className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-3 pb-3">
+      <nav className={clsx('scrollbar-hide flex-1 overflow-y-auto overflow-x-hidden px-3 pb-3', collapsed ? 'space-y-1' : 'space-y-4')}>
         <div className="space-y-0.5">
           {topNav.map((item) => (
             <FlatLink key={item.to} item={item} collapsed={collapsed} />
           ))}
         </div>
 
-        <div className={clsx('flex items-center gap-1.5 py-2', collapsed && 'flex-wrap justify-center')}>
+        <div className={clsx('flex items-center gap-1.5', collapsed ? 'flex-wrap justify-center py-1' : 'py-2')}>
           {quickAccess.map((item) => (
             <button
               key={item.id}
@@ -160,9 +155,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
               className={clsx(
                 'flex h-8 items-center justify-center rounded-lg border transition',
                 collapsed ? 'w-8' : 'w-full',
-                activeQuick === item.id
-                  ? 'border-accent/30 bg-accent/10 text-accent'
-                  : 'border-border text-ink-muted hover:bg-surface-hover hover:text-ink',
+                'border-border text-ink-muted hover:bg-surface-hover hover:text-ink',
               )}
             >
               <item.icon className="h-4 w-4" strokeWidth={2} />
@@ -183,8 +176,8 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
                   title={collapsed ? entry.label : undefined}
                   onClick={onOpenAiPanel}
                   className={clsx(
-                    'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
-                    collapsed && 'justify-center px-0',
+                    'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition',
+                    collapsed && 'justify-center px-0 py-1.5',
                     aiPanelOpen ? 'bg-accent/10 text-accent' : 'text-ink hover:bg-surface-hover',
                   )}
                 >
@@ -197,8 +190,8 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
         </div>
       </nav>
 
-      <div className="p-3">
-        <div className="flex flex-wrap items-center justify-center gap-1">
+      <div className={clsx(collapsed ? 'px-2 py-2' : 'p-3')}>
+        <div className={clsx('flex flex-wrap items-center gap-1', collapsed ? 'justify-center' : 'justify-between')}>
           {bottomUtility.map((item) =>
             item.to ? (
               <NavLink
@@ -229,18 +222,17 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
 
         {!collapsed && (
           <div className="group mt-3 rounded-lg border border-border px-3 py-2">
-            <div className="flex items-center justify-between text-xs text-ink-muted">
-              <span>Transactions</span>
-              <span>4,820 / 10,000</span>
-            </div>
-            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
-              <div className="h-full rounded-full bg-accent" style={{ width: '48%' }} />
+            <div className="flex items-center justify-between gap-2">
+              <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
+                <div className="h-full rounded-full bg-accent" style={{ width: '48%' }} />
+              </div>
+              <span className='flex whitespace-nowrap text-[10px] text-ink-muted'>4k / 10k</span>
             </div>
             <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 group-hover:grid-rows-[1fr]">
               <div className="overflow-hidden">
                 <button
                   type="button"
-                  className="mt-2 w-full rounded-md bg-accent/10 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/15"
+                  className="mt-2 w-full rounded-md border border-ink-muted text-gray-500 py-1.5 text-xs hover:text-accent transition hover:bg-accent/15"
                 >
                   Manage usage
                 </button>
