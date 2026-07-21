@@ -63,6 +63,7 @@ export const bankFeedItems: BankFeedItem[] = [
     time: '09:58 AM',
     payee: 'GREEN LEAF CAFE',
     bankReference: 'REF: PAYNOW-772812',
+    customer: 'Green Leaf Cafe',
     amount: 3400,
     status: 'Unmatched',
   },

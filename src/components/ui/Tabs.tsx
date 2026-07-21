@@ -34,7 +34,7 @@ export function Tabs({ items, value, onChange, className }: TabsProps) {
   return (
     <div ref={containerRef} className={clsx('relative inline-flex w-fit self-start', className)}>
       <div className="flex items-center rounded-lg border border-border bg-surface">
-        <span className="whitespace-nowrap px-3 py-1.5 text-sm font-medium text-heading">
+        <span className="whitespace-nowrap px-3 py-1.5 text-xs font-medium text-heading">
           {selected.label}
           {selected.count !== undefined && <span className="ml-1 text-ink-muted">({selected.count})</span>}
         </span>
@@ -60,7 +60,7 @@ export function Tabs({ items, value, onChange, className }: TabsProps) {
                 setOpen(false)
               }}
               className={clsx(
-                'flex w-full items-center justify-between gap-3 whitespace-nowrap px-3 py-2 text-left text-sm font-medium transition',
+                'flex w-full items-center justify-between gap-3 whitespace-nowrap px-3 py-2 text-left text-xs font-medium transition',
                 item.value === value ? 'bg-accent/10 text-accent' : 'text-ink hover:bg-surface-hover',
               )}
             >

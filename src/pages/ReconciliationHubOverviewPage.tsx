@@ -205,8 +205,7 @@ function TransactionCell({ item }: { item: BankFeedItem }) {
         {initials(item.payee)}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-heading">{item.payee}</p>
-        <p className="truncate text-xs text-ink-muted">{item.customer ? `Matched to ${item.customer}` : item.bankReference}</p>
+        <p className="truncate text-sm font-medium text-heading">{item.customer}</p>
       </div>
     </div>
   )
@@ -246,6 +245,9 @@ export function ReconciliationHubOverviewPage() {
   const previewColumns: TableColumn<BankFeedItem>[] = [
     { key: 'transaction', header: 'Transaction', render: (item) => <TransactionCell item={item} /> },
     {
+      key: 'matched', header: 'Matched', render: (item) => <p className="truncate text-xs text-ink-muted">{item.customer ? `Matched to ${item.customer}` : item.bankReference}</p>
+    },
+    {
       key: 'amount',
       header: 'Amount',
       align: 'right',
@@ -254,6 +256,7 @@ export function ReconciliationHubOverviewPage() {
     {
       key: 'status',
       header: 'Status',
+      align: 'right',
       render: (item) => <Badge tone={bankFeedTone[item.status]}>{item.status}</Badge>,
     },
   ]
@@ -440,32 +443,28 @@ export function ReconciliationHubOverviewPage() {
       {/* Analytics section */}
       <div className="grid gap-4 @4xl:grid-cols-2">
         <Card className="flex min-w-0 flex-col p-5">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
-              <Landmark className="h-4 w-4" />
+          <div className='flex justify-between w-full'>
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
+                <Landmark className="h-4 w-4" />
+              </div>
+              <h3 className="text-base font-semibold text-heading">Today&apos;s Reconciliation</h3>
+              <button className=" text-xs border border-transparent flex items-center gap-2 whitespace-nowrap rounded-lg p-1 text-accent bg-transparent hover:border-accent hover:bg-accent/10">
+                Open Workspace
+              </button>
             </div>
-            <h3 className="text-base font-semibold text-heading">Today&apos;s Reconciliation</h3>
           </div>
 
           <div className="mt-4 flex items-center gap-6">
             <ul className="min-w-0 flex-1 space-y-3 text-sm">
               {todaysReconciliationBreakdown.map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-2">
+                <li key={item.id} className="flex items-center justify-between gap-2 border-b border-border pb-2 last:border-0 last:pb-0">
                   <span className="truncate text-ink">{item.label}</span>
                   <span className="shrink-0 font-semibold text-heading">{item.value}</span>
                 </li>
               ))}
             </ul>
             <ProgressRing value={reconciliationProgress} />
-          </div>
-
-          <div className="mt-auto flex flex-col gap-2 border-t border-border pt-4 @sm:flex-row @sm:items-center">
-            <Button variant='outline' className="@sm:flex-1">
-              Open Reconciliation Workspace <ArrowRight className="h-4 w-4" />
-            </Button>
-            <button type="button" className="flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-ink hover:text-accent">
-              <FileText className="h-4 w-4" /> View Bank Statement
-            </button>
           </div>
         </Card>
 
