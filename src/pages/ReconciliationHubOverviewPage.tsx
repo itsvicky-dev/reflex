@@ -453,9 +453,11 @@ export function ReconciliationHubOverviewPage() {
               </div>
               <h3 className="text-base font-semibold text-heading">Today&apos;s Reconciliation</h3>
             </div>
-            <button className=" text-xs border border-transparent flex items-center gap-2 whitespace-nowrap rounded-lg p-1 text-accent bg-transparent hover:border-accent hover:bg-accent/10">
+            <div>
+            <button className="text-xs border border-transparent flex items-center gap-2 whitespace-nowrap rounded-lg p-1 text-accent bg-transparent hover:border-accent hover:bg-accent/10">
               Open Workspace
             </button>
+            </div>
           </div>
 
           <div className="mt-4 flex items-center gap-6">
