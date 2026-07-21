@@ -27,16 +27,23 @@ import {
   Users,
   Wrench,
   Home as HomeIcon,
+  TowerControl,
 } from 'lucide-react'
 import type { ElementType } from 'react'
 import controlTowerIcon from '../assets/icons/control-tower.png'
-import finPilotIcon from '../assets/icons/fin-pilot.png'
+import finPilotIcon from '../assets/icons/fin-pilot.svg'
 
 export type IconComponent = ElementType<{ className?: string; strokeWidth?: number }>
 
 function imageIcon(src: string): IconComponent {
   return function ImageIcon({ className }: { className?: string }) {
     return <img src={src} alt="" className={className} />
+  }
+}
+
+function svgIcon(svg: string): IconComponent {
+  return function SvgIcon({ className }: { className?: string }) {
+    return <span className={className} dangerouslySetInnerHTML={{ __html: svg }} />
   }
 }
 
@@ -50,7 +57,7 @@ export const topNav: NavLink[] = [
   { kind: 'link', to: '/search', label: 'Search', icon: Search },
   { kind: 'link', to: '/home', label: 'Home', icon: HomeIcon },
   { kind: 'link', to: '/finance-navigator', label: 'Finance Navigator', icon: imageIcon(finPilotIcon) },
-  { kind: 'link', to: '/control-tower', label: 'Control Tower', icon: imageIcon(controlTowerIcon) },
+  { kind: 'link', to: '/control-tower', label: 'Control Tower', icon: TowerControl },
   { kind: 'link', to: '/one-view', label: 'One View', icon: Eye },
 ]
 

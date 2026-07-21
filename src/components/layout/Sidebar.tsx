@@ -117,7 +117,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
       }
       className={clsx(
         'relative flex h-full shrink-0 flex-col overflow-hidden bg-surface',
-        !dragging && 'transition-[width] duration-300 ease-in-out',
+        !dragging && 'transition-[width] duration-300 ease-nnin-out',
       )}
     >
       <div className={clsx('flex items-center gap-2', collapsed ? 'justify-center px-2 py-2' : 'px-3 pt-2 pb-3')}>

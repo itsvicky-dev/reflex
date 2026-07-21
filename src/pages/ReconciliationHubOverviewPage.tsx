@@ -2,7 +2,6 @@ import { clsx } from 'clsx'
 import {
   AlertTriangle,
   ArrowRight,
-  CheckCircle2,
   ChevronLeft,
   Download,
   Eye,
@@ -17,7 +16,6 @@ import {
   Table2,
   UserX,
   Wallet,
-  XCircle,
   type LucideIcon,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -123,11 +121,18 @@ function OpenInvoicesTable({ invoices }: { invoices: OpenInvoice[] }) {
   )
 }
 
-const statIcons: Record<string, LucideIcon> = {
-  'bank-transactions': Landmark,
-  'auto-matched': CheckCircle2,
-  'needs-review': Search,
-  unmatched: XCircle,
+const statTrend: Record<string, { color: string; glyph: string } | null> = {
+  'bank-transactions': null,
+  'auto-matched': { color: 'text-emerald-600 dark:text-emerald-400', glyph: '▲' },
+  'needs-review': { color: 'text-rose-600 dark:text-rose-400', glyph: '▼' },
+  unmatched: { color: 'text-rose-600 dark:text-rose-400', glyph: '▼' },
+}
+
+const statToTab: Record<string, Tab> = {
+  'bank-transactions': 'All Transactions',
+  'auto-matched': 'Auto Matched',
+  'needs-review': 'Needs Review',
+  unmatched: 'Unmatched',
 }
 
 const attentionIcons: Record<string, LucideIcon> = {
@@ -381,7 +386,7 @@ export function ReconciliationHubOverviewPage() {
   return (
     <section className="@container space-y-4">
       <div className="flex flex-col gap-3 @lg:flex-row @lg:items-center @lg:justify-between">
-        <h1 className="text-2xl font-bold text-heading">Reconciliation</h1>
+        <h1 className="text-2xl font-medium text-heading">Reconciliation</h1>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="white" size="sm" className="whitespace-nowrap">
             <Download className="h-4 w-4" /> Upload Bank Statement
@@ -395,32 +400,41 @@ export function ReconciliationHubOverviewPage() {
         </div>
       </div>
 
-      <div className="scrollbar-hide flex gap-3 overflow-x-auto bg-white p-3 rounded-2xl border border-border bg-surface shadow-sm shadow-black/[0.03] dark:shadow-black/20">
+      <div className="scrollbar-hide flex gap-3 bg-[#fff] dark:bg-[#111111] p-3 rounded-xl overflow-x-auto">
         {reconciliationStats.map((stat) => {
-          const Icon = statIcons[stat.id]
+          const trend = statTrend[stat.id]
+          const isSelected = tab === statToTab[stat.id]
           return (
-            <Card key={stat.id} className="min-w-[180px] flex-1 basis-[180px] p-3">
-              <div className="flex items-start gap-3">
-                <div>
-                  <span className="truncate text-sm font-medium text-ink">{stat.label}</span>
-                  <div className='flex items-center gap-3'>
-                    <p className="mt-3 text-2xl font-semibold text-heading">{stat.value}</p>
-                    <p className="text-xs text-ink-muted">{stat.sublabel}</p>
-                  </div>
-                </div>
+            <Card
+              key={stat.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => setTab(statToTab[stat.id])}
+              className={clsx(
+                'min-w-[200px] flex-1 basis-[200px] cursor-pointer border p-3 transition-colors',
+                isSelected ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/40',
+              )}
+            >
+              <span className={clsx('truncate text-sm ', isSelected ? 'text-accent' : 'text-[#5a5e68]')}>{stat.label}</span>
+              <div className="mt-1 flex items-baseline gap-2">
+                <p className={clsx('text-[24px] font-medium', isSelected ? 'text-accent' : 'text-heading')}>{stat.value}</p>
+                {trend ? (
+                  <span className={clsx('flex items-center gap-0.5 text-xs font-semibold', trend.color)}>
+                    <span aria-hidden className="text-[9px]">{trend.glyph}</span>
+                    {stat.sublabel}
+                  </span>
+                ) : (
+                  <span className="text-sm text-ink-muted">–</span>
+                )}
               </div>
             </Card>
           )
         })}
 
-        <Card className="min-w-[180px] flex-1 basis-[180px] p-3">
-          <div className="flex items-start gap-3">
-            <div>
-              <span className="truncate text-sm font-medium text-ink">Total Amount</span>
-              <div className='flex items-center gap-3'>
-                <p className="mt-3 text-2xl font-semibold text-heading">{currency(totalReceivedAmount)}</p>
-              </div>
-            </div>
+        <Card className="min-w-[200px] flex-1 basis-[200px] border border-border p-3">
+          <span className="truncate text-sm font-medium text-ink-muted">Total Amount</span>
+          <div className="mt-1 flex items-baseline gap-2">
+            <p className="text-2xl font-medium text-heading">{currency(totalReceivedAmount)}</p>
           </div>
         </Card>
       </div>
