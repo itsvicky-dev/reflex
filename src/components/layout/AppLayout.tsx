@@ -18,7 +18,7 @@ export function AppLayout() {
   })
 
   return (
-    <div className="flex h-screen gap-2 overflow-hidden bg-white p-2">
+    <div className="flex h-screen gap-2 overflow-hidden bg-white px-[6px] py-2">
       <Sidebar onOpenAiPanel={() => setAiPanelOpen(true)} aiPanelOpen={aiPanelOpen} />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[13px] border border-border bg-app-bg">

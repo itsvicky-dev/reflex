@@ -10,7 +10,7 @@ const suggestions = [
   'Explain why collections dropped this month',
   'Show invoices requiring immediate action',
   'Investigate reconciliation exceptions',
-  'Compare this month’s performance with last month'
+  // 'Compare this month’s performance with last month'
 ]
 
 export function AiPanel({ onClose }: { onClose: () => void }) {
@@ -43,7 +43,7 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
           <Sparkles className="relative h-8 w-8 text-accent" />
         </div>
         <h2 className="mt-4 text-xl font-semibold text-heading">How can Reflex help you today?</h2>
-        <span>Ask questions, uncover insights, predict outcomes, and take action across your finance operat</span>
+        <span className='text-xs'>Ask questions, uncover insights, predict outcomes, and take action across your finance operat</span>
         <div className="mt-6 w-full space-y-2">
           {suggestions.map((item) => (
             <button
@@ -88,8 +88,8 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
             type="text"
             value={message}
             onChange={(event) => setMessage(event.target.value)}
-            placeholder="Ask Reflex about invoices, customers, payments, cash flow, risks"
-            className="w-full bg-transparent px-2 py-1.5 text-sm text-ink placeholder:text-ink-muted focus:outline-none"
+            placeholder="Ask Reflex about invoices, customers and payments"
+            className="w-full bg-transparent px-2 py-1.5 text-sm text-ink placeholder:text-ink-muted placeholder:text-[12px] focus:outline-none"
           />
           <div className="mt-1 flex items-center justify-between px-1">
             <button type="button" className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-hover hover:text-ink">
