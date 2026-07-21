@@ -16,13 +16,15 @@ type TabsProps = {
 export function Tabs({ items, value, onChange, className }: TabsProps) {
   return (
     <div className={clsx('inline-flex w-fit flex-wrap items-center gap-1 self-start rounded-lg border border-border', className)}>
-      {items.map((item) => (
+      {items.map((item, index) => (
         <button
           key={item.value}
           type="button"
           onClick={() => onChange(item.value)}
           className={clsx(
             'whitespace-nowrap px-3 py-1.5 text-sm font-medium transition',
+            index === 0 && 'rounded-l-md',
+            index === items.length - 1 && 'rounded-r-md',
             value === item.value ? 'bg-accent/10 text-accent' : 'text-ink-muted hover:text-ink',
           )}
         >
