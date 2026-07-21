@@ -1,9 +1,11 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppLayout } from '../components/layout/AppLayout'
+import { LayoutProvider } from '../context/LayoutContext'
 import { AllContentPage } from '../pages/AllContentPage'
 import { ExceptionsPage } from '../pages/ExceptionsPage'
 import { OverviewPage } from '../pages/OverviewPage'
 import { PlaceholderPage } from '../pages/PlaceholderPage'
+import { ReconciliationHubOverviewPage } from '../pages/ReconciliationHubOverviewPage'
 import { ReconciliationPage } from '../pages/ReconciliationPage'
 import { ReportsPage } from '../pages/ReportsPage'
 import { SettingsPage } from '../pages/SettingsPage'
@@ -21,7 +23,6 @@ const placeholderRoutes: Array<{ path: string; title: string }> = [
   { path: 'invoice-intelligence/overview', title: 'Invoice Intelligence' },
   { path: 'invoice-intelligence/all-invoices', title: 'All Invoices' },
   { path: 'invoice-intelligence/priority-queue', title: 'Priority Queue' },
-  { path: 'reconciliation-hub/overview', title: 'Reconciliation Hub' },
   { path: 'reconciliation-hub/workbench', title: 'Workbench' },
   { path: 'reconciliation-hub/payee-mapping', title: 'Payee Mapping' },
   { path: 'reconciliation-hub/bank-statements', title: 'Bank Statements' },
@@ -40,12 +41,17 @@ const placeholderRoutes: Array<{ path: string; title: string }> = [
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <AppLayout />,
+    element: (
+      <LayoutProvider>
+        <AppLayout />
+      </LayoutProvider>
+    ),
     children: [
       { index: true, element: <Navigate to="/overview" replace /> },
       { path: 'overview', element: <OverviewPage /> },
       { path: 'content', element: <AllContentPage /> },
       { path: 'reconciliation', element: <ReconciliationPage /> },
+      { path: 'reconciliation-hub/overview', element: <ReconciliationHubOverviewPage /> },
       { path: 'transactions', element: <TransactionsPage /> },
       { path: 'exceptions', element: <ExceptionsPage /> },
       { path: 'reports', element: <ReportsPage /> },

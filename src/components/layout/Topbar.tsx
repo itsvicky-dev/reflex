@@ -11,8 +11,8 @@ export function Topbar() {
   const title = current?.label ?? 'Overview'
 
   return (
-    <header className="flex items-center justify-between gap-3 px-6 py-4">
-      <h1 className="text-[24px] font-semibold text-heading">{title}</h1>
+    <header className="flex items-center justify-between gap-3">
+      {/* <h1 className="text-[24px] font-semibold text-heading">{title}</h1>
 
       <div className="flex items-center gap-3">
         <ThemeSwitcher />
@@ -25,7 +25,7 @@ export function Topbar() {
         <Button size="sm">
           <SlidersHorizontal className="h-3.5 w-3.5" /> Customize
         </Button>
-      </div>
+      </div> */}
     </header>
   )
 }

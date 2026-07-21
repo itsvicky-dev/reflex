@@ -3,20 +3,11 @@ import { ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { NavLink } from 'react-router-dom'
 import { bottomUtility, productsNav, quickAccess, topNav, type NavGroup, type NavLink as NavLinkType } from '../../config/navigation'
+import { useLayout } from '../../context/LayoutContext'
 import { useResizableWidth } from '../../hooks/useResizableWidth'
 
 const SIDEBAR_WIDTH_KEY = 'reconciliation.sidebar-width'
 const SIDEBAR_COLLAPSED_WIDTH = 45
-
-const SIDEBAR_COLLAPSE_KEY = 'reconciliation.sidebar-collapsed'
-
-function loadCollapsed(): boolean {
-  try {
-    return localStorage.getItem(SIDEBAR_COLLAPSE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
 
 function FlatLink({ item, collapsed }: { item: NavLinkType; collapsed: boolean }) {
   const Icon = item.icon
@@ -105,25 +96,13 @@ function GroupRow({ group, collapsed }: { group: NavGroup; collapsed: boolean })
 
 export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => void; aiPanelOpen: boolean }) {
   // const [activeQuick, setActiveQuick] = useState('recents')
-  const [collapsed, setCollapsed] = useState(loadCollapsed)
+  const { sidebarCollapsed: collapsed, toggleSidebarCollapsed: toggleCollapsed } = useLayout()
   const { width, dragging, startResize } = useResizableWidth({
     storageKey: SIDEBAR_WIDTH_KEY,
     defaultWidth: 230,
     min: 200,
     max: 420,
   })
-
-  function toggleCollapsed() {
-    setCollapsed((prev) => {
-      const next = !prev
-      try {
-        localStorage.setItem(SIDEBAR_COLLAPSE_KEY, next ? '1' : '0')
-      } catch {
-        // ignore
-      }
-      return next
-    })
-  }
 
   return (
     <aside

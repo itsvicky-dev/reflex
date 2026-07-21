@@ -1,6 +1,6 @@
 import { clsx } from 'clsx'
-import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
+import { useLayout } from '../../context/LayoutContext'
 import { useResizableWidth } from '../../hooks/useResizableWidth'
 import { AiPanel } from '../ai/AiPanel'
 import { AiTriggerButton } from '../ai/AiTriggerButton'
@@ -8,7 +8,7 @@ import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 
 export function AppLayout() {
-  const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const { aiPanelOpen, setAiPanelOpen } = useLayout()
   const { width: aiPanelWidth, dragging, startResize } = useResizableWidth({
     storageKey: 'reconciliation.ai-panel-width',
     defaultWidth: 420,
@@ -21,7 +21,7 @@ export function AppLayout() {
     <div className="flex h-screen gap-2 overflow-hidden bg-white px-[6px] py-2">
       <Sidebar onOpenAiPanel={() => setAiPanelOpen(true)} aiPanelOpen={aiPanelOpen} />
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[13px] border border-border bg-app-bg">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[13px] border border-border bg-[#f4f5f6]">
         <Topbar />
         <main className="flex-1 overflow-y-auto bg-app-bg p-6">
           <Outlet />

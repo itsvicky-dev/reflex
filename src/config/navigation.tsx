@@ -40,7 +40,8 @@ function imageIcon(src: string): IconComponent {
   }
 }
 
-export type NavLink = { kind: 'link'; to: string; label: string; icon: IconComponent; badge?: string }
+export type NavLayoutConfig = { sidebarCollapsed?: boolean; aiPanelOpen?: boolean }
+export type NavLink = { kind: 'link'; to: string; label: string; icon: IconComponent; badge?: string; layout?: NavLayoutConfig }
 export type NavGroup = { kind: 'group'; id: string; label: string; icon: IconComponent; defaultOpen?: boolean; children: NavLink[] }
 export type NavAction = { kind: 'action'; id: string; label: string; icon: IconComponent }
 export type NavEntry = NavLink | NavGroup | NavAction
