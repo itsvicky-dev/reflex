@@ -6,7 +6,7 @@ import { bottomUtility, productsNav, quickAccess, topNav, type NavGroup, type Na
 import { useResizableWidth } from '../../hooks/useResizableWidth'
 
 const SIDEBAR_WIDTH_KEY = 'reconciliation.sidebar-width'
-const SIDEBAR_COLLAPSED_WIDTH = 80
+const SIDEBAR_COLLAPSED_WIDTH = 45
 
 const SIDEBAR_COLLAPSE_KEY = 'reconciliation.sidebar-collapsed'
 
@@ -167,7 +167,9 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
           ))}
         </div>
 
-        <div className={clsx('flex items-center gap-1.5', collapsed ? 'flex-wrap justify-center py-1' : 'py-2')}>
+        <div className={clsx('border-t border-border', collapsed ? 'mx-2' : 'mx-3')} />
+
+        {/* <div className={clsx('flex items-center gap-1.5', collapsed ? 'flex-wrap justify-center py-1' : 'py-2')}>
           {quickAccess.map((item) => (
             <button
               key={item.id}
@@ -185,7 +187,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
               <item.icon className="h-4 w-4" strokeWidth={2} />
             </button>
           ))}
-        </div>
+        </div> */}
 
         <div>
           {!collapsed && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Products</p>}
