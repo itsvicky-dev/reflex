@@ -128,7 +128,7 @@ export function Table<T>({
               <Fragment key={key}>
                 <tr className={clsx('border-b border-border transition last:border-0 hover:bg-surface-hover/60', selected.has(key) && 'bg-accent/5')}>
                   {selectable && (
-                    <td className="w-10 whitespace-nowrap px-4 py-3 align-middle">
+                    <td className="w-10 whitespace-nowrap px-4 py-2 align-middle">
                       <input
                         type="checkbox"
                         checked={selected.has(key)}
@@ -145,7 +145,7 @@ export function Table<T>({
                       <td
                         key={column.key}
                         className={clsx(
-                          'px-4 py-3 align-middle',
+                          'px-4 py-2 align-middle',
                           column.align === 'right' && 'text-right',
                           highlighted && 'bg-accent font-semibold text-accent-content',
                           column.cellClassName,

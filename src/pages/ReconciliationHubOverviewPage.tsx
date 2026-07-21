@@ -405,19 +405,17 @@ export function ReconciliationHubOverviewPage() {
           const trend = statTrend[stat.id]
           const isSelected = tab === statToTab[stat.id]
           return (
-            <Card
+            <div
               key={stat.id}
-              role="button"
               tabIndex={0}
               onClick={() => setTab(statToTab[stat.id])}
               className={clsx(
-                'min-w-[200px] flex-1 basis-[200px] cursor-pointer border p-3 transition-colors',
-                isSelected ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/40',
+                ' rounded-lg min-w-[200px] flex-1 basis-[200px] cursor-pointer border p-3 transition-colors border-border hover:border-accent/40',
               )}
             >
-              <span className={clsx('truncate text-sm ', isSelected ? 'text-accent' : 'text-[#5a5e68]')}>{stat.label}</span>
-              <div className="mt-1 flex items-baseline gap-2">
-                <p className={clsx('text-[24px] font-medium', isSelected ? 'text-accent' : 'text-heading')}>{stat.value}</p>
+              <span className={clsx('truncate text-sm text-[#5a5e68]')}>{stat.label}</span>
+              <div className="flex items-center gap-2">
+                <p className={clsx('text-[24px] font-[400] text-heading')}>{stat.value}</p>
                 {trend ? (
                   <span className={clsx('flex items-center gap-0.5 text-xs font-semibold', trend.color)}>
                     <span aria-hidden className="text-[9px]">{trend.glyph}</span>
@@ -427,14 +425,14 @@ export function ReconciliationHubOverviewPage() {
                   <span className="text-sm text-ink-muted">–</span>
                 )}
               </div>
-            </Card>
+            </div>
           )
         })}
 
         <Card className="min-w-[200px] flex-1 basis-[200px] border border-border p-3">
           <span className="truncate text-sm font-medium text-ink-muted">Total Amount</span>
-          <div className="mt-1 flex items-baseline gap-2">
-            <p className="text-2xl font-medium text-heading">{currency(totalReceivedAmount)}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[24px] font-[400] text-heading">{currency(totalReceivedAmount)}</p>
           </div>
         </Card>
       </div>
@@ -488,7 +486,7 @@ export function ReconciliationHubOverviewPage() {
             {attentionItems.map((item) => {
               const Icon = attentionIcons[item.id] ?? AlertTriangle
               return (
-                <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 py-3">
+                <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 py-2">
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
                       <Icon className="h-4 w-4" />

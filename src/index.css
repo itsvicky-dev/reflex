@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: 'Inter', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', 'Helvetica', Arial sans-serif;
 
   /* Accent: overridden at runtime on :root by ThemeProvider */
   --color-accent: #4f46e5;
