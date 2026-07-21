@@ -108,7 +108,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
   const [collapsed, setCollapsed] = useState(loadCollapsed)
   const { width, dragging, startResize } = useResizableWidth({
     storageKey: SIDEBAR_WIDTH_KEY,
-    defaultWidth: 240,
+    defaultWidth: 230,
     min: 200,
     max: 420,
   })

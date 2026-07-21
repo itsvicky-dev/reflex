@@ -5,9 +5,12 @@ import { allNavLinks } from '../../config/navigation'
 import { IconButton } from '../ui/IconButton'
 
 const suggestions = [
-  'Find anomalies and investigate the cause',
-  'Summarize open exceptions by severity',
-  'Compare this period to the previous one',
+  'Predict cash flow for the next 30 days',
+  'Find customers with increasing payment risk',
+  'Explain why collections dropped this month',
+  'Show invoices requiring immediate action',
+  'Investigate reconciliation exceptions',
+  'Compare this month’s performance with last month'
 ]
 
 export function AiPanel({ onClose }: { onClose: () => void }) {
@@ -40,14 +43,14 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
           <Sparkles className="relative h-8 w-8 text-accent" />
         </div>
         <h2 className="mt-4 text-xl font-semibold text-heading">How can Reflex help you today?</h2>
-
+        <span>Ask questions, uncover insights, predict outcomes, and take action across your finance operat</span>
         <div className="mt-6 w-full space-y-2">
           {suggestions.map((item) => (
             <button
               key={item}
               type="button"
               onClick={() => setMessage(item)}
-              className="w-full rounded-xl border border-border px-4 py-2.5 text-left text-sm text-ink transition hover:border-accent/30 hover:bg-accent/5"
+              className="w-full rounded-xl border border-border px-4 py-2.5 text-left text-xs text-ink transition hover:border-accent/30 hover:bg-accent/5"
             >
               {item}
             </button>
@@ -56,7 +59,7 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="space-y-3 px-3 pb-3">
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-hover p-3">
+        {/* <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-hover p-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
             <Sparkles className="h-4 w-4" />
           </div>
@@ -67,7 +70,7 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
           <button type="button" className="shrink-0 text-xs font-semibold text-accent hover:underline">
             Try now
           </button>
-        </div>
+        </div> */}
 
         <div className="flex items-center gap-1.5 text-xs text-ink-muted">
           <Sparkles className="h-3 w-3 text-accent" />
@@ -85,7 +88,7 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
             type="text"
             value={message}
             onChange={(event) => setMessage(event.target.value)}
-            placeholder="Analyze, build, or type / for commands"
+            placeholder="Ask Reflex about invoices, customers, payments, cash flow, risks"
             className="w-full bg-transparent px-2 py-1.5 text-sm text-ink placeholder:text-ink-muted focus:outline-none"
           />
           <div className="mt-1 flex items-center justify-between px-1">
