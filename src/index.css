@@ -75,7 +75,7 @@ p {
 ::selection {
   background: color-mix(in oklab, var(--color-accent) 35%, transparent);
 }
-
+ 
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;

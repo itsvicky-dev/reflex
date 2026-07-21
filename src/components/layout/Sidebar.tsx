@@ -96,7 +96,7 @@ function GroupRow({ group, collapsed }: { group: NavGroup; collapsed: boolean })
 }
 
 export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => void; aiPanelOpen: boolean }) {
-  const [activeQuick, setActiveQuick] = useState('recent')
+  const [activeQuick, setActiveQuick] = useState('recents')
   const [collapsed, setCollapsed] = useState(loadCollapsed)
 
   function toggleCollapsed() {
@@ -122,9 +122,9 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
         {!collapsed && (
           <button type="button" className="flex flex-1 items-center gap-2 rounded-lg px-1 py-1 text-left hover:bg-surface-hover">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-sm font-bold text-accent-content">
-              W
+              R
             </div>
-            <span className="truncate text-sm font-semibold text-heading">WeLe IntelliTech</span>
+            <span className="truncate text-sm font-semibold text-heading">Reflex</span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
           </button>
         )}
@@ -155,7 +155,9 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
               className={clsx(
                 'flex h-8 items-center justify-center rounded-lg border transition',
                 collapsed ? 'w-8' : 'w-full',
-                'border-border text-ink-muted hover:bg-surface-hover hover:text-ink',
+                activeQuick === item.id
+                  ? 'border-accent bg-accent/10 text-accent'
+                  : 'border-border text-ink-muted hover:bg-surface-hover hover:text-ink',
               )}
             >
               <item.icon className="h-4 w-4" strokeWidth={2} />
