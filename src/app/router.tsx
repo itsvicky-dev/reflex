@@ -7,6 +7,7 @@ import { OverviewPage } from '../pages/OverviewPage'
 import { PlaceholderPage } from '../pages/PlaceholderPage'
 import { ReconciliationHubOverviewPage } from '../pages/ReconciliationHubOverviewPage'
 import { ReconciliationPage } from '../pages/ReconciliationPage'
+import { ReflexAiPage } from '../pages/ReflexAiPage'
 import { ReportsPage } from '../pages/ReportsPage'
 import { SettingsPage } from '../pages/SettingsPage'
 import { TransactionsPage } from '../pages/TransactionsPage'
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
       { path: 'exceptions', element: <ExceptionsPage /> },
       { path: 'reports', element: <ReportsPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'reflex-ai', element: <ReflexAiPage /> },
       ...placeholderRoutes.map((route) => ({
         path: route.path,
         element: <PlaceholderPage title={route.title} />,

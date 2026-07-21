@@ -21,6 +21,7 @@ import {
   Search,
   Settings as SettingsIcon,
   SlidersHorizontal,
+  Sparkles,
   Star,
   TrendingUp,
   UserPlus,
@@ -56,6 +57,7 @@ export type NavEntry = NavLink | NavGroup | NavAction
 export const topNav: NavLink[] = [
   { kind: 'link', to: '/search', label: 'Search', icon: Search },
   { kind: 'link', to: '/home', label: 'Home', icon: HomeIcon },
+  { kind: 'link', to: '/reflex-ai', label: 'Reflex AI', icon: Sparkles },
   { kind: 'link', to: '/finance-navigator', label: 'FinPilot', icon: imageIcon(finPilotIcon) },
   { kind: 'link', to: '/control-tower', label: 'Control Tower', icon: TowerControl },
   { kind: 'link', to: '/one-view', label: 'One View', icon: Eye },

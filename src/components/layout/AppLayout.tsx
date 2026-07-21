@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { useLayout } from '../../context/LayoutContext'
 import { useResizableWidth } from '../../hooks/useResizableWidth'
 import { AiPanel } from '../ai/AiPanel'
@@ -9,6 +9,8 @@ import { Topbar } from './Topbar'
 
 export function AppLayout() {
   const { aiPanelOpen, setAiPanelOpen } = useLayout()
+  const { pathname } = useLocation()
+  const isReflexAiPage = pathname.startsWith('/reflex-ai')
   const { width: aiPanelWidth, dragging, startResize } = useResizableWidth({
     storageKey: 'reconciliation.ai-panel-width',
     defaultWidth: 420,
@@ -23,36 +25,38 @@ export function AppLayout() {
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[13px] border border-border bg-[#f4f5f6]">
         <Topbar />
-        <main className="flex-1 overflow-y-auto bg-app-bg p-6">
+        <main className={clsx('flex-1 overflow-hidden bg-app-bg', isReflexAiPage ? '' : 'overflow-y-auto p-6')}>
           <Outlet />
         </main>
       </div>
 
-      <div
-        style={{ width: aiPanelOpen ? aiPanelWidth : 0 }}
-        className={clsx(
-          'relative h-full shrink-0 overflow-hidden',
-          !dragging && 'transition-[width] duration-300 ease-in-out',
-        )}
-      >
-        <div className="h-full" style={{ width: aiPanelWidth }}>
-          <AiPanel onClose={() => setAiPanelOpen(false)} />
+      {!isReflexAiPage && (
+        <div
+          style={{ width: aiPanelOpen ? aiPanelWidth : 0 }}
+          className={clsx(
+            'relative h-full shrink-0 overflow-hidden',
+            !dragging && 'transition-[width] duration-300 ease-in-out',
+          )}
+        >
+          <div className="h-full" style={{ width: aiPanelWidth }}>
+            <AiPanel onClose={() => setAiPanelOpen(false)} />
+          </div>
+
+          {aiPanelOpen && (
+            <div
+              onPointerDown={startResize}
+              role="separator"
+              aria-orientation="vertical"
+              className={clsx(
+                'absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize touch-none transition-colors',
+                dragging ? 'bg-accent/50' : 'hover:bg-accent/40',
+              )}
+            />
+          )}
         </div>
+      )}
 
-        {aiPanelOpen && (
-          <div
-            onPointerDown={startResize}
-            role="separator"
-            aria-orientation="vertical"
-            className={clsx(
-              'absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize touch-none transition-colors',
-              dragging ? 'bg-accent/50' : 'hover:bg-accent/40',
-            )}
-          />
-        )}
-      </div>
-
-      {!aiPanelOpen && <AiTriggerButton onClick={() => setAiPanelOpen(true)} />}
+      {!isReflexAiPage && !aiPanelOpen && <AiTriggerButton onClick={() => setAiPanelOpen(true)} />}
     </div>
   )
 }
