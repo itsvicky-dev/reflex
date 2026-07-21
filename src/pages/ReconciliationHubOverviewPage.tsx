@@ -4,13 +4,13 @@ import {
   ArrowRight,
   CheckCircle2,
   ChevronLeft,
-  ChevronRight,
   Download,
   Eye,
   FileEdit,
   FileText,
   Landmark,
-  List,
+  Mail,
+  MessageCircle,
   MoreVertical,
   RefreshCw,
   Search,
@@ -20,11 +20,13 @@ import {
   XCircle,
   type LucideIcon,
 } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { IconButton } from '../components/ui/IconButton'
+import { Table, type TableColumn } from '../components/ui/Table'
+import { Tabs } from '../components/ui/Tabs'
 import { useLayout } from '../context/LayoutContext'
 import {
   attentionItems,
@@ -34,12 +36,92 @@ import {
   todaysReconciliationBreakdown,
   totalReceivedAmount,
   type BankFeedItem,
-  type BankFeedStatus,
+  type OpenInvoice,
+  type OpenInvoiceStatus,
 } from '../data/mockReconciliationHub'
 import { bankFeedTone } from '../lib/status'
 
 const currency = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value)
+
+const invoiceStatusClasses: Record<OpenInvoiceStatus, string> = {
+  Open: 'border border-border text-ink',
+  Partial: 'border border-amber-200 bg-amber-100 font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300',
+  Overdue: 'border border-rose-200 bg-rose-100 font-semibold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300',
+}
+
+function ageBucket(days: number) {
+  if (days <= 30) return { label: '0–30', className: 'border-border text-ink-muted' }
+  if (days <= 60) return { label: '31–60', className: 'border-amber-200 text-amber-700 dark:border-amber-500/30 dark:text-amber-300' }
+  if (days <= 90) return { label: '61–90', className: 'border-orange-200 text-orange-700 dark:border-orange-500/30 dark:text-orange-300' }
+  return { label: '90+', className: 'border-rose-200 text-rose-700 dark:border-rose-500/30 dark:text-rose-300' }
+}
+
+function OpenInvoicesTable({ invoices }: { invoices: OpenInvoice[] }) {
+  return (
+    <div className="overflow-hidden">
+      <table className="w-full min-w-full border-collapse text-left text-sm">
+        <thead>
+          <tr className="border-y border-border">
+            {['Invoice', 'Date', 'Age', 'Status', 'Total', 'Paid', 'Outstanding', 'Reason', 'Chase'].map((label) => (
+              <th
+                key={label}
+                className={clsx(
+                  'whitespace-nowrap px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink-muted',
+                  ['Total', 'Paid', 'Outstanding'].includes(label) && 'text-right',
+                )}
+              >
+                {label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {invoices.map((invoice) => {
+            const bucket = ageBucket(invoice.ageDays)
+            const outstanding = invoice.total - invoice.paid
+            return (
+              <tr key={invoice.id}>
+                <td className="whitespace-nowrap px-3 py-2.5 font-medium text-accent">{invoice.id}</td>
+                <td className="whitespace-nowrap px-3 py-2.5 text-ink">{invoice.date}</td>
+                <td className="whitespace-nowrap px-3 py-2.5">
+                  <span className={clsx('inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium', bucket.className)}>
+                    {invoice.ageDays}d · {bucket.label}
+                  </span>
+                </td>
+                <td className="whitespace-nowrap px-3 py-2.5">
+                  <span className={clsx('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs', invoiceStatusClasses[invoice.status])}>
+                    {invoice.status}
+                  </span>
+                </td>
+                <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-ink">{invoice.total.toFixed(2)}</td>
+                <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-ink">{invoice.paid.toFixed(2)}</td>
+                <td className="whitespace-nowrap px-3 py-2.5 text-right font-semibold tabular-nums text-heading">{outstanding.toFixed(2)}</td>
+                <td className="whitespace-nowrap px-3 py-2.5 text-ink-muted">{invoice.reason ?? '—'}</td>
+                <td className="whitespace-nowrap px-3 py-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <IconButton
+                      aria-label={`Chase ${invoice.id} via WhatsApp`}
+                      className="h-7 w-7 border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                    </IconButton>
+                    <IconButton
+                      aria-label={`Chase ${invoice.id} via email`}
+                      className="h-7 w-7 border-accent/30 text-accent hover:bg-accent/10"
+                    >
+                      <Mail className="h-3.5 w-3.5" />
+                    </IconButton>
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
 
 const statIcons: Record<string, LucideIcon> = {
   'bank-transactions': Landmark,
@@ -80,35 +162,22 @@ function initials(name: string) {
     .toUpperCase()
 }
 
-function confidenceColor(value: number) {
-  if (value >= 90) return 'bg-emerald-500'
-  if (value >= 70) return 'bg-amber-500'
-  return 'bg-rose-500'
-}
-
-const statusDot: Record<BankFeedStatus, string> = {
-  'Auto Matched': 'bg-emerald-500',
-  'Partial Match': 'bg-amber-500',
-  'Needs Review': 'bg-amber-500',
-  Unmatched: 'bg-rose-500',
-}
-
 function ProgressRing({ value }: { value: number }) {
-  const radius = 46
+  const radius = 58
   const circumference = 2 * Math.PI * radius
   const offset = circumference * (1 - value / 100)
 
   return (
-    <div className="relative flex h-28 w-28 shrink-0 items-center justify-center">
-      <svg viewBox="0 0 112 112" className="h-28 w-28 -rotate-90">
-        <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="9" className="text-surface-hover" />
+    <div className="relative flex h-58 w-58 shrink-0 items-center justify-center">
+      <svg viewBox="0 0 144 144" className="h-58 w-58 -rotate-90">
+        <circle cx="72" cy="72" r={radius} fill="none" stroke="currentColor" strokeWidth="10" className="text-surface-hover" />
         <circle
-          cx="56"
-          cy="56"
+          cx="72"
+          cy="72"
           r={radius}
           fill="none"
           stroke="currentColor"
-          strokeWidth="9"
+          strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -116,7 +185,7 @@ function ProgressRing({ value }: { value: number }) {
         />
       </svg>
       <div className="absolute flex flex-col items-center text-center">
-        <span className="text-xl font-semibold text-heading">{value}%</span>
+        <span className="text-2xl font-semibold text-heading">{value}%</span>
         <span className="text-[10px] leading-tight text-ink-muted">Reconciliation</span>
         <span className="text-[10px] leading-tight text-ink-muted">Progress</span>
       </div>
@@ -124,23 +193,15 @@ function ProgressRing({ value }: { value: number }) {
   )
 }
 
-function FeedRow({ item }: { item: BankFeedItem }) {
+function TransactionCell({ item }: { item: BankFeedItem }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-hover text-xs font-semibold text-ink">
-          {initials(item.payee)}
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-heading">{item.payee}</p>
-          <p className="truncate text-xs text-ink-muted">{item.customer ? `Matched to ${item.customer}` : item.bankReference}</p>
-        </div>
+    <div className="flex min-w-0 items-center gap-3">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-hover text-xs font-semibold text-ink">
+        {initials(item.payee)}
       </div>
-      <div className="flex shrink-0 items-center gap-4">
-        <span className="whitespace-nowrap text-sm font-semibold text-heading">{currency(item.amount)}</span>
-        <Badge tone={bankFeedTone[item.status]} className="whitespace-nowrap">
-          {item.status}
-        </Badge>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-heading">{item.payee}</p>
+        <p className="truncate text-xs text-ink-muted">{item.customer ? `Matched to ${item.customer}` : item.bankReference}</p>
       </div>
     </div>
   )
@@ -151,8 +212,6 @@ export function ReconciliationHubOverviewPage() {
   const [tab, setTab] = useState<Tab>('All Transactions')
   const [expanded, setExpanded] = useState(false)
   const [query, setQuery] = useState('')
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const scrollRef = useRef<HTMLDivElement>(null)
 
   const filtered = useMemo(() => {
     const allow = tabStatusFilter[tab]
@@ -167,28 +226,6 @@ export function ReconciliationHubOverviewPage() {
     return filtered.filter((item) => item.payee.toLowerCase().includes(q) || item.customer?.toLowerCase().includes(q))
   }, [filtered, query])
 
-  const allSelected = rows.length > 0 && rows.every((row) => selected.has(row.id))
-
-  function toggleRow(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
-  function toggleAll() {
-    setSelected((prev) => {
-      if (rows.length > 0 && rows.every((row) => prev.has(row.id))) return new Set()
-      return new Set(rows.map((row) => row.id))
-    })
-  }
-
-  function scrollTableBy(delta: number) {
-    scrollRef.current?.scrollBy({ left: delta, behavior: 'smooth' })
-  }
-
   function handleViewFullTable() {
     setExpanded(true)
     setSidebarCollapsed(true)
@@ -201,15 +238,155 @@ export function ReconciliationHubOverviewPage() {
     setAiPanelOpen(false)
   }
 
+  const previewColumns: TableColumn<BankFeedItem>[] = [
+    { key: 'transaction', header: 'Transaction', render: (item) => <TransactionCell item={item} /> },
+    {
+      key: 'amount',
+      header: 'Amount',
+      align: 'right',
+      render: (item) => <span className="font-medium text-heading">{currency(item.amount)}</span>,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (item) => <Badge tone={bankFeedTone[item.status]}>{item.status}</Badge>,
+    },
+  ]
+
+  const fullColumns: TableColumn<BankFeedItem>[] = [
+    {
+      key: 'date',
+      header: 'Date',
+      render: (item) => (
+        <>
+          <p className="whitespace-nowrap font-medium text-heading">{item.date}</p>
+          <p className="whitespace-nowrap text-xs text-ink-muted">{item.time}</p>
+        </>
+      ),
+    },
+    {
+      key: 'payee',
+      header: 'Payee / Narration',
+      render: (item) => (
+        <>
+          <p className="whitespace-nowrap font-medium text-heading">{item.payee}</p>
+          <p className="whitespace-nowrap text-xs text-ink-muted">{item.bankReference}</p>
+        </>
+      ),
+    },
+    {
+      key: 'customer',
+      header: 'Customer',
+      render: (item) =>
+        item.customer ? (
+          <>
+            <p className="whitespace-nowrap font-medium text-heading">{item.customer}</p>
+            <p className="whitespace-nowrap text-xs text-ink-muted">{item.invoiceReference}</p>
+          </>
+        ) : (
+          <span className="text-ink-muted">—</span>
+        ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (item) => <Badge>{item.status}</Badge>,
+    },
+    {
+      key: 'confidence',
+      header: 'Confidence',
+      render: (item) => (item.confidence ? <span className="font-medium text-heading">{item.confidence}%</span> : <span className="text-ink-muted">—</span>),
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      align: 'right',
+      render: (item) => <span className="font-medium text-heading">{currency(item.amount)}</span>,
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: () => (
+        <div className="flex items-center justify-end gap-1">
+          <IconButton aria-label="View transaction" className="h-8 w-8">
+            <Eye className="h-3.5 w-3.5" />
+          </IconButton>
+          <IconButton aria-label="More actions" className="h-8 w-8">
+            <MoreVertical className="h-3.5 w-3.5" />
+          </IconButton>
+        </div>
+      ),
+    },
+  ]
+
+  const tabBar = (
+    <Tabs
+      items={tabs.map((item) => ({ label: item, value: item, count: tabCounts[item] }))}
+      value={tab}
+      onChange={(value) => setTab(value as Tab)}
+    />
+  )
+
+  const searchBox = (
+    <div className="relative">
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-muted" />
+      <input
+        type="text"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Search payee or customer"
+        className="w-full rounded-lg border border-border bg-surface py-1.5 pl-8 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-accent/50 focus:outline-none @sm:w-64"
+      />
+    </div>
+  )
+
+  if (expanded) {
+    return (
+      <section className="space-y-4">
+        <div className="flex items-center gap-3">
+          <IconButton aria-label="Back to overview" onClick={handleShowMinimal}>
+            <ChevronLeft className="h-4 w-4" />
+          </IconButton>
+          <h1 className="text-xl font-semibold text-heading">All Transactions</h1>
+        </div>
+
+        <Card className="min-w-0 p-4">
+          <div className="mb-4 flex justify-between gap-3 border-b border-border pb-4">
+            {tabBar}
+            {searchBox}
+          </div>
+          <Table
+            columns={fullColumns}
+            data={rows}
+            rowKey={(item) => item.id}
+            emptyMessage="No transactions match this filter."
+            // selectable
+            expandable
+            expandColumnKey="date"
+            // highlightColumnKey="amount"
+            renderExpanded={(item) =>
+              item.openInvoices?.length ? (
+                <OpenInvoicesTable invoices={item.openInvoices} />
+              ) : (
+                <p className="px-1 py-2 text-sm text-ink-muted">No open invoices linked to this transaction.</p>
+              )
+            }
+          />
+        </Card>
+      </section>
+    )
+  }
+
   return (
     <section className="@container space-y-4">
       <div className="flex flex-col gap-3 @lg:flex-row @lg:items-center @lg:justify-between">
         <h1 className="text-2xl font-bold text-heading">Reconciliation</h1>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" className="whitespace-nowrap">
+          <Button variant="white" size="sm" className="whitespace-nowrap">
             <Download className="h-4 w-4" /> Upload Bank Statement
           </Button>
-          <Button variant="outline" size="sm" className="whitespace-nowrap">
+          <Button variant="white" size="sm" className="whitespace-nowrap">
             <FileEdit className="h-4 w-4" /> Manual Entry
           </Button>
           <Button size="sm" className="whitespace-nowrap">
@@ -218,45 +395,39 @@ export function ReconciliationHubOverviewPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 @md:grid-cols-3 @4xl:grid-cols-5">
+      <div className="scrollbar-hide flex gap-3 overflow-x-auto bg-white p-3 rounded-2xl border border-border bg-surface shadow-sm shadow-black/[0.03] dark:shadow-black/20">
         {reconciliationStats.map((stat) => {
           const Icon = statIcons[stat.id]
           return (
-            <Card key={stat.id} className="min-w-0 p-4">
+            <Card key={stat.id} className="min-w-[180px] flex-1 basis-[180px] p-3">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
-                  <Icon className="h-[18px] w-[18px]" />
-                </div>
                 <div>
                   <span className="truncate text-sm font-medium text-ink">{stat.label}</span>
-                  <p className="mt-3 text-2xl font-semibold text-heading">{stat.value}</p>
-                  <p className="text-xs text-ink-muted">{stat.sublabel}</p>
+                  <div className='flex items-center gap-3'>
+                    <p className="mt-3 text-2xl font-semibold text-heading">{stat.value}</p>
+                    <p className="text-xs text-ink-muted">{stat.sublabel}</p>
+                  </div>
                 </div>
               </div>
-              <button type="button" className="mt-2 flex items-center gap-1 text-xs font-medium text-accent hover:underline">
-                {stat.cta} <ArrowRight className="h-3 w-3" />
-              </button>
             </Card>
           )
         })}
 
-        <Card className="min-w-0 p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
-              <Wallet className="h-[18px] w-[18px]" />
+        <Card className="min-w-[180px] flex-1 basis-[180px] p-3">
+          <div className="flex items-start gap-3">
+            <div>
+              <span className="truncate text-sm font-medium text-ink">Total Amount</span>
+              <div className='flex items-center gap-3'>
+                <p className="mt-3 text-2xl font-semibold text-heading">{currency(totalReceivedAmount)}</p>
+              </div>
             </div>
-            <span className="truncate text-sm font-medium text-ink">Total Amount</span>
           </div>
-          <p className="mt-3 text-2xl font-semibold text-heading">{currency(totalReceivedAmount)}</p>
-          <p className="text-xs text-ink-muted">Total Received</p>
-          <button type="button" className="mt-2 flex items-center gap-1 text-xs font-medium text-accent hover:underline">
-            View Summary <ArrowRight className="h-3 w-3" />
-          </button>
         </Card>
       </div>
 
+      {/* Analytics section */}
       <div className="grid gap-4 @4xl:grid-cols-2">
-        <Card className="min-w-0 p-5">
+        <Card className="flex min-w-0 flex-col p-5">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
               <Landmark className="h-4 w-4" />
@@ -276,8 +447,8 @@ export function ReconciliationHubOverviewPage() {
             <ProgressRing value={reconciliationProgress} />
           </div>
 
-          <div className="mt-5 flex flex-col gap-2 border-t border-border pt-4 @sm:flex-row @sm:items-center">
-            <Button className="@sm:flex-1">
+          <div className="mt-auto flex flex-col gap-2 border-t border-border pt-4 @sm:flex-row @sm:items-center">
+            <Button variant='outline' className="@sm:flex-1">
               Open Reconciliation Workspace <ArrowRight className="h-4 w-4" />
             </Button>
             <button type="button" className="flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-ink hover:text-accent">
@@ -286,7 +457,7 @@ export function ReconciliationHubOverviewPage() {
           </div>
         </Card>
 
-        <Card className="min-w-0 p-5">
+        <Card className="flex min-w-0 flex-col p-5">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
@@ -303,7 +474,7 @@ export function ReconciliationHubOverviewPage() {
             {attentionItems.map((item) => {
               const Icon = attentionIcons[item.id] ?? AlertTriangle
               return (
-                <li key={item.id} className="flex items-center justify-between gap-3 py-3">
+                <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 py-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
                       <Icon className="h-4 w-4" />
@@ -313,12 +484,12 @@ export function ReconciliationHubOverviewPage() {
                       <p className="truncate text-xs text-ink-muted">{item.sublabel}</p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-heading">{item.count}</p>
-                      <p className="whitespace-nowrap text-xs text-ink-muted">{currency(item.amount)}</p>
-                    </div>
-                    <Button variant="outline" size="sm" className="whitespace-nowrap">
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-heading">{item.count}</p>
+                    <p className="whitespace-nowrap text-xs text-ink-muted">{currency(item.amount)}</p>
+                  </div>
+                  <div className="pl-3">
+                    <Button variant="outline" size="sm" className="w-full whitespace-nowrap">
                       {item.cta}
                     </Button>
                   </div>
@@ -330,190 +501,14 @@ export function ReconciliationHubOverviewPage() {
       </div>
 
       <Card className="min-w-0 p-5">
-        <div className="flex flex-col gap-3 border-b border-border pb-4 @lg:flex-row @lg:items-center @lg:justify-between">
-          <div className="flex flex-wrap gap-1 rounded-xl bg-surface-hover p-1">
-            {tabs.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setTab(item)}
-                className={clsx(
-                  'whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition',
-                  tab === item ? 'bg-accent text-accent-content' : 'text-ink-muted hover:text-ink',
-                )}
-              >
-                {item} <span className="opacity-70">({tabCounts[item]})</span>
-              </button>
-            ))}
-          </div>
-
-          {expanded && (
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-muted" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search payee or customer"
-                  className="w-48 rounded-lg border border-border bg-surface py-1.5 pl-8 pr-2 text-xs text-ink placeholder:text-ink-muted focus:border-accent/50 focus:outline-none @sm:w-56"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleShowMinimal}
-                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm font-medium text-ink hover:text-accent"
-              >
-                <List className="h-4 w-4" /> Show minimal view
-              </button>
-            </div>
-          )}
+        <div className="flex flex-col gap-3 pb-4 @lg:flex-row @lg:items-center @lg:justify-between">
+          {tabBar}
+          <Button variant="outline" size="sm" onClick={handleViewFullTable} className="whitespace-nowrap">
+            <Table2 className="h-3.5 w-3.5" /> View Full Table
+          </Button>
         </div>
 
-        {!expanded ? (
-          <>
-            <div className="divide-y divide-border">
-              {preview.map((item) => (
-                <FeedRow key={item.id} item={item} />
-              ))}
-              {preview.length === 0 && <p className="py-8 text-center text-sm text-ink-muted">No transactions in this view.</p>}
-            </div>
-
-            <button
-              type="button"
-              onClick={handleViewFullTable}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm font-medium text-ink transition hover:bg-surface-hover"
-            >
-              <Table2 className="h-4 w-4" /> View Full Table
-            </button>
-          </>
-        ) : (
-          <div className="mt-3 flex overflow-hidden rounded-xl border border-border">
-            <table className="shrink-0 border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b border-border bg-surface-hover text-xs uppercase tracking-wider text-ink-muted">
-                  <th className="w-10 px-3 py-3">
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
-                      onChange={toggleAll}
-                      aria-label="Select all rows"
-                      className="h-3.5 w-3.5"
-                      style={{ accentColor: 'var(--color-accent)' }}
-                    />
-                  </th>
-                  <th className="whitespace-nowrap px-3 py-3 font-medium">Payee / Narration</th>
-                  <th className="whitespace-nowrap px-3 py-3 font-medium">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((item) => (
-                  <tr key={item.id} className="h-16 border-b border-border/60 last:border-0">
-                    <td className="px-3 align-middle">
-                      <input
-                        type="checkbox"
-                        checked={selected.has(item.id)}
-                        onChange={() => toggleRow(item.id)}
-                        aria-label={`Select ${item.payee}`}
-                        className="h-3.5 w-3.5"
-                        style={{ accentColor: 'var(--color-accent)' }}
-                      />
-                    </td>
-                    <td className="px-3 align-middle">
-                      <div className="flex items-center gap-2">
-                        <span className={clsx('h-2 w-2 shrink-0 rounded-full', statusDot[item.status])} />
-                        <div className="min-w-0">
-                          <p className="whitespace-nowrap font-medium text-heading">{item.payee}</p>
-                          <p className="whitespace-nowrap text-xs text-ink-muted">{item.bankReference}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap px-3 align-middle font-medium text-heading">{currency(item.amount)}</td>
-                  </tr>
-                ))}
-                {rows.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="py-8 text-center text-sm text-ink-muted">
-                      No matches.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            <div className="w-px shrink-0 bg-border" />
-
-            <div className="min-w-0 flex-1">
-              <div ref={scrollRef} className="overflow-x-auto">
-                <table className="w-full min-w-[560px] border-collapse text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-surface-hover text-xs uppercase tracking-wider text-ink-muted">
-                      <th className="whitespace-nowrap px-3 py-3 font-medium">Transaction Date</th>
-                      <th className="whitespace-nowrap px-3 py-3 font-medium">Customer (Mapped)</th>
-                      <th className="whitespace-nowrap px-3 py-3 font-medium">Status</th>
-                      <th className="whitespace-nowrap px-3 py-3 font-medium">Matching Confidence</th>
-                      <th className="whitespace-nowrap px-3 py-3 text-right font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((item) => (
-                      <tr key={item.id} className="h-16 border-b border-border/60 last:border-0">
-                        <td className="whitespace-nowrap px-3 align-middle">
-                          <p className="font-medium text-heading">{item.date}</p>
-                          <p className="text-xs text-ink-muted">{item.time}</p>
-                        </td>
-                        <td className="px-3 align-middle">
-                          {item.customer ? (
-                            <>
-                              <p className="whitespace-nowrap font-medium text-heading">{item.customer}</p>
-                              <p className="whitespace-nowrap text-xs text-ink-muted">{item.invoiceReference}</p>
-                            </>
-                          ) : (
-                            <span className="text-ink-muted">—</span>
-                          )}
-                        </td>
-                        <td className="whitespace-nowrap px-3 align-middle">
-                          <Badge tone={bankFeedTone[item.status]}>{item.status}</Badge>
-                        </td>
-                        <td className="whitespace-nowrap px-3 align-middle">
-                          {item.confidence ? (
-                            <div
-                              className={clsx(
-                                'flex h-8 w-16 items-center justify-center rounded-lg text-xs font-semibold text-white',
-                                confidenceColor(item.confidence),
-                              )}
-                            >
-                              {item.confidence}%
-                            </div>
-                          ) : (
-                            <span className="text-ink-muted">—</span>
-                          )}
-                        </td>
-                        <td className="whitespace-nowrap px-3 align-middle">
-                          <div className="flex items-center justify-end gap-1">
-                            <IconButton aria-label="View transaction" className="h-8 w-8">
-                              <Eye className="h-3.5 w-3.5" />
-                            </IconButton>
-                            <IconButton aria-label="More actions" className="h-8 w-8">
-                              <MoreVertical className="h-3.5 w-3.5" />
-                            </IconButton>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {rows.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="py-8 text-center text-sm text-ink-muted">
-                          No transactions match this filter.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+        <Table columns={previewColumns} data={preview} rowKey={(item) => item.id} emptyMessage="No transactions in this view." />
       </Card>
     </section>
   )

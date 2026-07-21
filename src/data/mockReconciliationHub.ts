@@ -1,5 +1,17 @@
 export type BankFeedStatus = 'Auto Matched' | 'Partial Match' | 'Needs Review' | 'Unmatched'
 
+export type OpenInvoiceStatus = 'Open' | 'Partial' | 'Overdue'
+
+export type OpenInvoice = {
+  id: string
+  date: string
+  ageDays: number
+  status: OpenInvoiceStatus
+  total: number
+  paid: number
+  reason?: string
+}
+
 export type BankFeedItem = {
   id: string
   date: string
@@ -11,6 +23,7 @@ export type BankFeedItem = {
   invoiceReference?: string
   status: BankFeedStatus
   confidence?: number
+  openInvoices?: OpenInvoice[]
 }
 
 export const bankFeedItems: BankFeedItem[] = [
@@ -25,6 +38,7 @@ export const bankFeedItems: BankFeedItem[] = [
     invoiceReference: 'INV-2034',
     status: 'Auto Matched',
     confidence: 98,
+    openInvoices: [{ id: 'INV-2034', date: '07 May 2026', ageDays: 0, status: 'Open', total: 4200, paid: 4200 }],
   },
   {
     id: 'BF-772991',
@@ -37,6 +51,11 @@ export const bankFeedItems: BankFeedItem[] = [
     invoiceReference: 'INV-2031, INV-2030 (Partial)',
     status: 'Partial Match',
     confidence: 78,
+    openInvoices: [
+      { id: 'INV-24860', date: '2026-05-19', ageDays: 53, status: 'Partial', total: 2850, paid: 500, reason: 'Dispute pending' },
+      { id: 'INV-25015', date: '2026-06-08', ageDays: 33, status: 'Open', total: 3100, paid: 0 },
+      { id: 'INV-25260', date: '2026-06-30', ageDays: 11, status: 'Open', total: 2680, paid: 0 },
+    ],
   },
   {
     id: 'BF-772812',
@@ -58,6 +77,7 @@ export const bankFeedItems: BankFeedItem[] = [
     invoiceReference: 'INV-2028',
     status: 'Auto Matched',
     confidence: 95,
+    openInvoices: [{ id: 'INV-2028', date: '07 May 2026', ageDays: 0, status: 'Open', total: 2100, paid: 2100 }],
   },
   {
     id: 'BF-883455',
@@ -70,6 +90,7 @@ export const bankFeedItems: BankFeedItem[] = [
     invoiceReference: 'INV-2027',
     status: 'Needs Review',
     confidence: 60,
+    openInvoices: [{ id: 'INV-2027', date: '2026-06-22', ageDays: 19, status: 'Open', total: 2750, paid: 0 }],
   },
   {
     id: 'BF-772701',
@@ -82,6 +103,7 @@ export const bankFeedItems: BankFeedItem[] = [
     invoiceReference: 'INV-2026 (Partial)',
     status: 'Partial Match',
     confidence: 70,
+    openInvoices: [{ id: 'INV-2026', date: '2026-05-30', ageDays: 42, status: 'Partial', total: 1980, paid: 1200, reason: 'Short payment' }],
   },
   {
     id: 'BF-772588',
@@ -94,6 +116,10 @@ export const bankFeedItems: BankFeedItem[] = [
     invoiceReference: 'INV-2025, INV-2024 (Partial)',
     status: 'Needs Review',
     confidence: 55,
+    openInvoices: [
+      { id: 'INV-2025', date: '2026-04-02', ageDays: 94, status: 'Overdue', total: 3600, paid: 0, reason: 'Awaiting remittance' },
+      { id: 'INV-2024', date: '2026-05-14', ageDays: 58, status: 'Partial', total: 2000, paid: 800 },
+    ],
   },
 ]
 
