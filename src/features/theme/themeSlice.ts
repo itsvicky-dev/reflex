@@ -7,7 +7,7 @@ interface ThemeState {
 }
 
 const defaultState: ThemeState = {
-  mode: 'dark',
+  mode: 'light',
   accent: 'indigo',
 }
 

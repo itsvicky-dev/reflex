@@ -203,7 +203,7 @@ function ProgressRing({ value }: { value: number }) {
 function TransactionCell({ item }: { item: BankFeedItem }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-hover text-[10px] font-semibold text-ink">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-hover text-[10px] font-semibold text-ink border border-border">
         {initials(item.payee)}
       </div>
       <div className="min-w-0">
