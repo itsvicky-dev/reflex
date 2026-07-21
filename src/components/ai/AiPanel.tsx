@@ -39,7 +39,7 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
           <div className="absolute inset-0 rounded-full bg-accent/20 blur-xl" />
           <Sparkles className="relative h-8 w-8 text-accent" />
         </div>
-        <h2 className="mt-4 text-xl font-semibold text-heading">What do you want to know?</h2>
+        <h2 className="mt-4 text-xl font-semibold text-heading">How can Reflex help you today?</h2>
 
         <div className="mt-6 w-full space-y-2">
           {suggestions.map((item) => (
