@@ -104,7 +104,7 @@ function GroupRow({ group, collapsed }: { group: NavGroup; collapsed: boolean })
 }
 
 export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => void; aiPanelOpen: boolean }) {
-  const [activeQuick, setActiveQuick] = useState('recents')
+  // const [activeQuick, setActiveQuick] = useState('recents')
   const [collapsed, setCollapsed] = useState(loadCollapsed)
   const { width, dragging, startResize } = useResizableWidth({
     storageKey: SIDEBAR_WIDTH_KEY,
