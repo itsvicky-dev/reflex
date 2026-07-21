@@ -5,6 +5,7 @@ import { NavLink } from 'react-router-dom'
 import { bottomUtility, productsNav, quickAccess, topNav, type NavGroup, type NavLink as NavLinkType } from '../../config/navigation'
 import { useLayout } from '../../context/LayoutContext'
 import { useResizableWidth } from '../../hooks/useResizableWidth'
+import Logo from '../../assets/images/logo.svg'
 
 const SIDEBAR_WIDTH_KEY = 'reconciliation.sidebar-width'
 const SIDEBAR_COLLAPSED_WIDTH = 45
@@ -121,13 +122,13 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
     >
       <div className={clsx('flex items-center gap-2', collapsed ? 'justify-center px-2 py-2' : 'px-3 pt-2 pb-3')}>
         {!collapsed && (
-          <button type="button" className="flex flex-1 items-center gap-2 rounded-lg text-left hover:bg-surface-hover">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-sm font-bold text-accent-content">
-              R
-            </div>
-            <span className="truncate text-sm font-semibold text-heading">Tan Jian Hao</span>
-            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
-          </button>
+          <>
+            <img src={Logo} className='w-5' />
+            <button type="button" className="flex flex-1 items-center gap-2 rounded-lg text-left hover:bg-surface-hover">
+              <span className="truncate text-sm font-semibold text-heading">Tan Jian Hao</span>
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
+            </button>
+          </>
         )}
         <button
           type="button"
