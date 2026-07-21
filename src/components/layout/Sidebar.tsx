@@ -1,6 +1,6 @@
 import { clsx } from 'clsx'
 import { ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { NavLink } from 'react-router-dom'
 import { bottomUtility, productsNav, quickAccess, topNav, type NavGroup, type NavLink as NavLinkType } from '../../config/navigation'
 import { useResizableWidth } from '../../hooks/useResizableWidth'
@@ -127,7 +127,14 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
 
   return (
     <aside
-      style={{ width: collapsed ? SIDEBAR_COLLAPSED_WIDTH : width }}
+      style={
+        {
+          width: collapsed ? SIDEBAR_COLLAPSED_WIDTH : width,
+          '--color-ink': '#565A64',
+          '--color-ink-muted': '#565A64',
+          '--color-heading': '#565A64',
+        } as CSSProperties
+      }
       className={clsx(
         'relative flex h-full shrink-0 flex-col overflow-hidden bg-surface',
         !dragging && 'transition-[width] duration-300 ease-in-out',
@@ -139,7 +146,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-sm font-bold text-accent-content">
               R
             </div>
-            <span className="truncate text-sm font-semibold text-heading">Reflex</span>
+            <span className="truncate text-sm font-semibold text-heading">Tan Jian Hao</span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
           </button>
         )}

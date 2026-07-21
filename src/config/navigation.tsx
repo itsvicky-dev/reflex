@@ -3,7 +3,6 @@ import {
   Bell,
   Bot,
   Brain,
-  Compass,
   CreditCard,
   Database,
   Eye,
@@ -17,12 +16,10 @@ import {
   LineChart,
   ListOrdered,
   type LucideIcon,
-  RadioTower,
   Route,
   Scale,
   Search,
   Settings as SettingsIcon,
-  ScrollText,
   SlidersHorizontal,
   Star,
   TrendingUp,
@@ -31,17 +28,28 @@ import {
   Wrench,
   Home as HomeIcon,
 } from 'lucide-react'
+import type { ElementType } from 'react'
+import controlTowerIcon from '../assets/icons/control-tower.png'
+import finPilotIcon from '../assets/icons/fin-pilot.png'
 
-export type NavLink = { kind: 'link'; to: string; label: string; icon: LucideIcon; badge?: string }
-export type NavGroup = { kind: 'group'; id: string; label: string; icon: LucideIcon; defaultOpen?: boolean; children: NavLink[] }
-export type NavAction = { kind: 'action'; id: string; label: string; icon: LucideIcon }
+export type IconComponent = ElementType<{ className?: string; strokeWidth?: number }>
+
+function imageIcon(src: string): IconComponent {
+  return function ImageIcon({ className }: { className?: string }) {
+    return <img src={src} alt="" className={className} />
+  }
+}
+
+export type NavLink = { kind: 'link'; to: string; label: string; icon: IconComponent; badge?: string }
+export type NavGroup = { kind: 'group'; id: string; label: string; icon: IconComponent; defaultOpen?: boolean; children: NavLink[] }
+export type NavAction = { kind: 'action'; id: string; label: string; icon: IconComponent }
 export type NavEntry = NavLink | NavGroup | NavAction
 
 export const topNav: NavLink[] = [
   { kind: 'link', to: '/search', label: 'Search', icon: Search },
   { kind: 'link', to: '/home', label: 'Home', icon: HomeIcon },
-  { kind: 'link', to: '/finance-navigator', label: 'Finance Navigator', icon: Compass },
-  { kind: 'link', to: '/control-tower', label: 'Control Tower', icon: RadioTower },
+  { kind: 'link', to: '/finance-navigator', label: 'Finance Navigator', icon: imageIcon(finPilotIcon) },
+  { kind: 'link', to: '/control-tower', label: 'Control Tower', icon: imageIcon(controlTowerIcon) },
   { kind: 'link', to: '/one-view', label: 'One View', icon: Eye },
 ]
 
@@ -120,30 +128,30 @@ export const productsNav: NavEntry[] = [
     icon: Users,
     to: '/users',
   },
-  {
-    kind: 'link',
-    label: 'Audit Log',
-    icon: ScrollText,
-    to: '/audit-log',
-  },
-  {
-    kind: 'link',
-    label: 'Settings',
-    icon: SettingsIcon,
-    to: '/settings',
-  },
-  {
-    kind: 'link',
-    label: 'Notifications',
-    icon: Bell,
-    to: '/notifications',
-  },
-  {
-    kind: 'link',
-    label: 'Help & Support',
-    icon: HelpCircle,
-    to: '/help',
-  },
+  // {
+  //   kind: 'link',
+  //   label: 'Audit Log',
+  //   icon: ScrollText,
+  //   to: '/audit-log',
+  // },
+  // {
+  //   kind: 'link',
+  //   label: 'Settings',
+  //   icon: SettingsIcon,
+  //   to: '/settings',
+  // },
+  // {
+  //   kind: 'link',
+  //   label: 'Notifications',
+  //   icon: Bell,
+  //   to: '/notifications',
+  // },
+  // {
+  //   kind: 'link',
+  //   label: 'Help & Support',
+  //   icon: HelpCircle,
+  //   to: '/help',
+  // },
 ]
 
 export const bottomUtility: { id: string; label: string; icon: LucideIcon; to?: string }[] = [
