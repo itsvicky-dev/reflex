@@ -152,6 +152,8 @@ export const todaysReconciliationBreakdown = [
 
 export const reconciliationProgress = 87
 
+export const todaysReconciliationGeneratedAt = '10:30 AM'
+
 export type AttentionItem = {
   id: string
   label: string

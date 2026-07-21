@@ -3,10 +3,12 @@ import {
   AlertTriangle,
   ArrowRight,
   ChevronLeft,
+  Clock,
   Download,
   Eye,
   FileEdit,
   FileText,
+  Info,
   Landmark,
   Mail,
   MessageCircle,
@@ -32,6 +34,7 @@ import {
   reconciliationProgress,
   reconciliationStats,
   todaysReconciliationBreakdown,
+  todaysReconciliationGeneratedAt,
   totalReceivedAmount,
   type BankFeedItem,
   type OpenInvoice,
@@ -201,7 +204,7 @@ function ProgressRing({ value }: { value: number }) {
 function TransactionCell({ item }: { item: BankFeedItem }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-hover text-xs font-semibold text-ink">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-hover text-[10px] font-semibold text-ink">
         {initials(item.payee)}
       </div>
       <div className="min-w-0">
@@ -443,16 +446,16 @@ export function ReconciliationHubOverviewPage() {
       {/* Analytics section */}
       <div className="grid gap-4 @4xl:grid-cols-2">
         <Card className="flex min-w-0 flex-col p-5">
-          <div className='flex justify-between w-full'>
+          <div className="flex justify-between">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
                 <Landmark className="h-4 w-4" />
               </div>
               <h3 className="text-base font-semibold text-heading">Today&apos;s Reconciliation</h3>
-              <button className=" text-xs border border-transparent flex items-center gap-2 whitespace-nowrap rounded-lg p-1 text-accent bg-transparent hover:border-accent hover:bg-accent/10">
-                Open Workspace
-              </button>
             </div>
+            <button className=" text-xs border border-transparent flex items-center gap-2 whitespace-nowrap rounded-lg p-1 text-accent bg-transparent hover:border-accent hover:bg-accent/10">
+              Open Workspace
+            </button>
           </div>
 
           <div className="mt-4 flex items-center gap-6">
@@ -465,6 +468,11 @@ export function ReconciliationHubOverviewPage() {
               ))}
             </ul>
             <ProgressRing value={reconciliationProgress} />
+          </div>
+
+          <div className="mt-4 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-ink-muted">
+            <Info className="h-3.5 w-3.5" />
+            <span>Today&apos;s reconciliation generated at {todaysReconciliationGeneratedAt}</span>
           </div>
         </Card>
 
