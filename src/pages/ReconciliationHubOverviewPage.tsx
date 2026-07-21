@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   ArrowRight,
   ChevronLeft,
-  Clock,
   Download,
   Eye,
   FileEdit,
@@ -416,7 +415,7 @@ export function ReconciliationHubOverviewPage() {
               tabIndex={0}
               onClick={() => setTab(statToTab[stat.id])}
               className={clsx(
-                ' rounded-lg min-w-[200px] flex-1 basis-[200px] max-h-[70px] cursor-pointer border py-1.5 px-2 transition-colors border-border hover:border-accent/40',
+                ' rounded-lg min-w-[200px] flex-1 basis-[200px] max-h-[70px] cursor-pointer border py-1.5 px-2 transition-colors border-border hover:border-accent/40 hover:bg-accent/5',
               )}
             >
               <span className={clsx('truncate text-sm text-[#5a5e68]')}>{stat.label}</span>
@@ -472,7 +471,7 @@ export function ReconciliationHubOverviewPage() {
             <ProgressRing value={reconciliationProgress} />
           </div>
 
-          <div className="mt-4 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-ink-muted">
+          <div className="mt-4 flex flex-1 items-center gap-1.5 border-t border-border pt-3 text-xs text-ink-muted">
             <Info className="h-3.5 w-3.5" />
             <span>Today&apos;s reconciliation generated at {todaysReconciliationGeneratedAt}</span>
           </div>
@@ -480,7 +479,7 @@ export function ReconciliationHubOverviewPage() {
 
         <Card className="flex min-w-0 flex-col p-5">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
                 <AlertTriangle className="h-4 w-4" />
               </div>
