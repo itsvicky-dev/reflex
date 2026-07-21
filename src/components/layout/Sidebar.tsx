@@ -1,8 +1,12 @@
 import { clsx } from 'clsx'
-import { ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { bottomUtility, productsNav, quickAccess, topNav, type NavGroup, type NavLink as NavLinkType } from '../../config/navigation'
+import { useResizableWidth } from '../../hooks/useResizableWidth'
+
+const SIDEBAR_WIDTH_KEY = 'reconciliation.sidebar-width'
+const SIDEBAR_COLLAPSED_WIDTH = 80
 
 const SIDEBAR_COLLAPSE_KEY = 'reconciliation.sidebar-collapsed'
 
@@ -23,7 +27,7 @@ function FlatLink({ item, collapsed }: { item: NavLinkType; collapsed: boolean }
       title={collapsed ? item.label : undefined}
       className={({ isActive }) =>
         clsx(
-          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm  transition',
+          'flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm  transition',
           collapsed && 'justify-center px-0 py-1.5',
           isActive ? 'bg-accent/10 text-accent' : 'text-ink hover:bg-surface-hover',
         )
@@ -70,27 +74,31 @@ function GroupRow({ group, collapsed }: { group: NavGroup; collapsed: boolean })
       >
         <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
         <span className="flex-1 truncate text-left">{group.label}</span>
-        {open ? <ChevronDown className="h-3.5 w-3.5 text-ink-muted" /> : <ChevronRight className="h-3.5 w-3.5 text-ink-muted" />}
+        <ChevronDown
+          className={clsx('h-3.5 w-3.5 shrink-0 text-ink-muted transition-transform duration-200 ease-in-out', !open && '-rotate-90')}
+        />
       </button>
 
-      {open && (
-        <div className="ml-[26px] mt-0.5 space-y-0.5 pl-1">
-          {group.children.map((child) => (
-            <NavLink
-              key={child.to}
-              to={child.to}
-              className={({ isActive }) =>
-                clsx(
-                  'block rounded-lg px-3 py-1.5 text-sm transition',
-                  isActive ? 'bg-gray-100 font-medium text-ink' : 'text-ink-muted hover:bg-surface-hover hover:text-ink',
-                )
-              }
-            >
-              {child.label}
-            </NavLink>
-          ))}
+      <div className="grid transition-[grid-template-rows] duration-200 ease-in-out" style={{ gridTemplateRows: open ? '1fr' : '0fr' }}>
+        <div className="overflow-hidden">
+          <div className="ml-[26px] mt-0.5 space-y-0.5 pl-1">
+            {group.children.map((child) => (
+              <NavLink
+                key={child.to}
+                to={child.to}
+                className={({ isActive }) =>
+                  clsx(
+                    'block rounded-lg px-3 py-1.5 text-sm transition',
+                    isActive ? 'bg-gray-100 font-medium text-ink' : 'text-ink-muted hover:bg-surface-hover hover:text-ink',
+                  )
+                }
+              >
+                {child.label}
+              </NavLink>
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
@@ -98,6 +106,12 @@ function GroupRow({ group, collapsed }: { group: NavGroup; collapsed: boolean })
 export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => void; aiPanelOpen: boolean }) {
   const [activeQuick, setActiveQuick] = useState('recents')
   const [collapsed, setCollapsed] = useState(loadCollapsed)
+  const { width, dragging, startResize } = useResizableWidth({
+    storageKey: SIDEBAR_WIDTH_KEY,
+    defaultWidth: 240,
+    min: 200,
+    max: 420,
+  })
 
   function toggleCollapsed() {
     setCollapsed((prev) => {
@@ -113,14 +127,15 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
 
   return (
     <aside
+      style={{ width: collapsed ? SIDEBAR_COLLAPSED_WIDTH : width }}
       className={clsx(
-        'flex h-full shrink-0 flex-col overflow-hidden bg-surface transition-[width] duration-300 ease-in-out',
-        collapsed ? 'w-20' : 'w-60',
+        'relative flex h-full shrink-0 flex-col overflow-hidden bg-surface',
+        !dragging && 'transition-[width] duration-300 ease-in-out',
       )}
     >
-      <div className={clsx('flex items-center gap-2', collapsed ? 'justify-center px-2 py-2' : 'px-3 py-3')}>
+      <div className={clsx('flex items-center gap-2', collapsed ? 'justify-center px-2 py-2' : 'px-3 pt-2 pb-3')}>
         {!collapsed && (
-          <button type="button" className="flex flex-1 items-center gap-2 rounded-lg px-1 py-1 text-left hover:bg-surface-hover">
+          <button type="button" className="flex flex-1 items-center gap-2 rounded-lg text-left hover:bg-surface-hover">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-sm font-bold text-accent-content">
               R
             </div>
@@ -138,7 +153,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
         </button>
       </div>
 
-      <nav className={clsx('scrollbar-hide flex-1 overflow-y-auto overflow-x-hidden px-3 pb-3', collapsed ? 'space-y-1' : 'space-y-4')}>
+      <nav className={clsx('scrollbar-hide flex-1 overflow-y-auto overflow-x-hidden pb-3', collapsed ? 'space-y-1' : 'space-y-4')}>
         <div className="space-y-0.5">
           {topNav.map((item) => (
             <FlatLink key={item.to} item={item} collapsed={collapsed} />
@@ -243,6 +258,18 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
           </div>
         )}
       </div>
+
+      {!collapsed && (
+        <div
+          onPointerDown={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          className={clsx(
+            'absolute right-0 top-0 z-10 h-full w-1 cursor-col-resize touch-none transition-colors',
+            dragging ? 'bg-accent/50' : 'hover:bg-accent/40',
+          )}
+        />
+      )}
     </aside>
   )
 }

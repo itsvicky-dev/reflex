@@ -61,7 +61,7 @@ export function OverviewPage() {
 
   return (
     <section className="space-y-4">
-      <Card className="p-4">
+      <Card className="p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <button type="button" className="flex items-center gap-1.5 font-medium text-accent hover:underline">
@@ -89,14 +89,14 @@ export function OverviewPage() {
           </div>
         </div>
       </Card>
-      <Card className="p-4">
+      <Card className="p-5">
         <div className="flex items-center gap-2">
           <div ref={scrollerRef} className="flex flex-1 gap-3 overflow-x-auto pb-2">
             {kpis.map((kpi, index) => (
               <div
                 key={kpi.label}
                 className={clsx(
-                  'flex w-52 shrink-0 flex-col justify-between rounded-xl border p-3',
+                  'flex w-52 shrink-0 flex-col justify-between rounded-xl border p-4',
                   index === 0 ? 'border-accent/40 bg-accent/5' : 'border-border',
                 )}
               >

@@ -16,7 +16,7 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
   const current = allNavLinks.find((item) => pathname.startsWith(item.to))
 
   return (
-    <aside className="flex h-full w-[420px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+    <aside className="flex h-full w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
       <div className="flex items-center justify-between px-3 py-3">
         <IconButton aria-label="New chat">
           <Pencil className="h-4 w-4" />

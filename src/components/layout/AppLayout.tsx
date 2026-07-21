@@ -1,6 +1,7 @@
 import { clsx } from 'clsx'
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
+import { useResizableWidth } from '../../hooks/useResizableWidth'
 import { AiPanel } from '../ai/AiPanel'
 import { AiTriggerButton } from '../ai/AiTriggerButton'
 import { Sidebar } from './Sidebar'
@@ -8,6 +9,13 @@ import { Topbar } from './Topbar'
 
 export function AppLayout() {
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const { width: aiPanelWidth, dragging, startResize } = useResizableWidth({
+    storageKey: 'reconciliation.ai-panel-width',
+    defaultWidth: 420,
+    min: 320,
+    max: 640,
+    direction: -1,
+  })
 
   return (
     <div className="flex h-screen gap-2 overflow-hidden bg-white p-2">
@@ -21,14 +29,27 @@ export function AppLayout() {
       </div>
 
       <div
+        style={{ width: aiPanelOpen ? aiPanelWidth : 0 }}
         className={clsx(
-          'h-full shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out',
-          aiPanelOpen ? 'w-[420px]' : 'w-0',
+          'relative h-full shrink-0 overflow-hidden',
+          !dragging && 'transition-[width] duration-300 ease-in-out',
         )}
       >
-        <div className="h-full w-[420px]">
+        <div className="h-full" style={{ width: aiPanelWidth }}>
           <AiPanel onClose={() => setAiPanelOpen(false)} />
         </div>
+
+        {aiPanelOpen && (
+          <div
+            onPointerDown={startResize}
+            role="separator"
+            aria-orientation="vertical"
+            className={clsx(
+              'absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize touch-none transition-colors',
+              dragging ? 'bg-accent/50' : 'hover:bg-accent/40',
+            )}
+          />
+        )}
       </div>
 
       {!aiPanelOpen && <AiTriggerButton onClick={() => setAiPanelOpen(true)} />}
