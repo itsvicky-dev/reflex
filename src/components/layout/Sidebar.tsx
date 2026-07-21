@@ -19,7 +19,7 @@ function FlatLink({ item, collapsed }: { item: NavLinkType; collapsed: boolean }
       title={collapsed ? item.label : undefined}
       className={({ isActive }) =>
         clsx(
-          'flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm  transition',
+          'flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition',
           collapsed && 'justify-center px-0 py-1.5',
           isActive ? 'bg-accent/10 text-accent' : 'text-ink hover:bg-surface-hover',
         )
@@ -110,7 +110,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
       style={
         {
           width: collapsed ? SIDEBAR_COLLAPSED_WIDTH : width,
-          '--color-ink': '#565A64',
+          '--color-ink': '#1d1f24',
           '--color-ink-muted': '#565A64',
           '--color-heading': '#565A64',
         } as CSSProperties

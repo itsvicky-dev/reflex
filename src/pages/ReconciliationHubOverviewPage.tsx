@@ -173,8 +173,8 @@ function ProgressRing({ value }: { value: number }) {
   const offset = circumference * (1 - value / 100)
 
   return (
-    <div className="relative flex h-58 w-58 shrink-0 items-center justify-center">
-      <svg viewBox="0 0 144 144" className="h-58 w-58 -rotate-90">
+    <div className="relative flex h-52 w-52 shrink-0 items-center justify-center">
+      <svg viewBox="0 0 144 144" className="h-52 w-52 -rotate-90">
         <circle cx="72" cy="72" r={radius} fill="none" stroke="currentColor" strokeWidth="10" className="text-surface-hover" />
         <circle
           cx="72"
@@ -410,12 +410,12 @@ export function ReconciliationHubOverviewPage() {
               tabIndex={0}
               onClick={() => setTab(statToTab[stat.id])}
               className={clsx(
-                ' rounded-lg min-w-[200px] flex-1 basis-[200px] cursor-pointer border p-3 transition-colors border-border hover:border-accent/40',
+                ' rounded-lg min-w-[200px] flex-1 basis-[200px] max-h-[70px] cursor-pointer border py-1.5 px-2 transition-colors border-border hover:border-accent/40',
               )}
             >
               <span className={clsx('truncate text-sm text-[#5a5e68]')}>{stat.label}</span>
               <div className="flex items-center gap-2">
-                <p className={clsx('text-[24px] font-[400] text-heading')}>{stat.value}</p>
+                <p className={clsx('text-[24px] font-[400] text-black')}>{stat.value}</p>
                 {trend ? (
                   <span className={clsx('flex items-center gap-0.5 text-xs font-semibold', trend.color)}>
                     <span aria-hidden className="text-[9px]">{trend.glyph}</span>
@@ -429,10 +429,10 @@ export function ReconciliationHubOverviewPage() {
           )
         })}
 
-        <Card className="min-w-[200px] flex-1 basis-[200px] border border-border p-3">
+        <Card className="min-w-[200px] flex-1 basis-[200px] max-h-[70px] py-1.5 px-2 border border-border">
           <span className="truncate text-sm font-medium text-ink-muted">Total Amount</span>
           <div className="flex items-center gap-2">
-            <p className="text-[24px] font-[400] text-heading">{currency(totalReceivedAmount)}</p>
+            <p className="text-[24px] font-[400] text-black">{currency(totalReceivedAmount)}</p>
           </div>
         </Card>
       </div>
@@ -515,9 +515,9 @@ export function ReconciliationHubOverviewPage() {
       <Card className="min-w-0 p-5">
         <div className="flex flex-col gap-3 pb-4 @lg:flex-row @lg:items-center @lg:justify-between">
           {tabBar}
-          <Button variant="outline" size="sm" onClick={handleViewFullTable} className="whitespace-nowrap">
-            <Table2 className="h-3.5 w-3.5" /> View Full Table
-          </Button>
+          <button onClick={handleViewFullTable} className=" text-xs border border-transparent flex items-center gap-2 whitespace-nowrap rounded-lg p-1 text-accent bg-transparent hover:border-accent hover:bg-accent/10">
+            View Full Table
+          </button>
         </div>
 
         <Table columns={previewColumns} data={preview} rowKey={(item) => item.id} emptyMessage="No transactions in this view." />
