@@ -390,8 +390,8 @@ export function ReconciliationHubOverviewPage() {
 
   return (
     <section className="@container space-y-4">
-      <div className="flex flex-col gap-3 @lg:flex-row @lg:items-center @lg:justify-between">
-        <h1 className="text-2xl font-medium text-heading">Reconciliation</h1>
+      <div className="flex flex-col gap-3 @lg:flex-row @lg:items-center @lg:justify-end">
+        {/* <h1 className="text-2xl font-medium text-heading">Reconciliation</h1> */}
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="white" size="sm" className="whitespace-nowrap">
             <Download className="h-4 w-4" /> Upload Bank Statement
@@ -415,7 +415,7 @@ export function ReconciliationHubOverviewPage() {
               tabIndex={0}
               onClick={() => setTab(statToTab[stat.id])}
               className={clsx(
-                ' rounded-lg min-w-[200px] flex-1 basis-[200px] max-h-[70px] cursor-pointer border py-1.5 px-2 transition-colors border-border hover:border-accent/40 hover:bg-accent/5',
+                ' rounded-lg min-w-[200px] flex-1 basis-[200px] max-h-[70px] cursor-pointer border py-1.5 px-4 transition-colors border-border hover:border-accent/40 hover:bg-accent/5',
               )}
             >
               <span className={clsx('truncate text-sm text-[#5a5e68]')}>{stat.label}</span>
@@ -434,8 +434,8 @@ export function ReconciliationHubOverviewPage() {
           )
         })}
 
-        <Card className="min-w-[200px] flex-1 basis-[200px] max-h-[70px] py-1.5 px-2 border border-border">
-          <span className="truncate text-sm font-medium text-ink-muted">Total Amount</span>
+        <Card className="min-w-[200px] flex-1 basis-[200px] max-h-[70px] py-1.5 px-4 border border-border">
+          <span className="truncate text-sm text-[#5a5e68]">Total Amount</span>
           <div className="flex items-center gap-2">
             <p className="text-[24px] font-[400] text-black">{currency(totalReceivedAmount)}</p>
           </div>

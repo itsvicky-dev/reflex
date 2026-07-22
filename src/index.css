@@ -16,8 +16,19 @@
   --color-border: #e2e8f0;
 
   --color-ink: #475569;
-  --color-ink-muted: #94a3b8;
+  --color-ink-muted: #64748b;
   --color-heading: #0f172a;
+
+  /* Chart tokens: categorical series (fixed order, never cycled) + fixed status colors */
+  --color-chart-series-1: #2a78d6;
+  --color-chart-series-2: #008300;
+  --color-chart-series-3: #e87ba4;
+  --color-chart-series-4: #eda100;
+  --color-chart-grid: #e2e8f0;
+  --color-chart-baseline: #cbd5e1;
+  --color-chart-good: #0ca30c;
+  --color-chart-warning: #fab219;
+  --color-chart-critical: #d03b3b;
 }
 
 .dark {
@@ -27,8 +38,18 @@
   --color-border: rgba(255, 255, 255, 0.08);
 
   --color-ink: #cbd5e1;
-  --color-ink-muted: #64748b;
+  --color-ink-muted: #94a3b8;
   --color-heading: #f8fafc;
+
+  --color-chart-series-1: #3987e5;
+  --color-chart-series-2: #008300;
+  --color-chart-series-3: #d55181;
+  --color-chart-series-4: #c98500;
+  --color-chart-grid: rgba(255, 255, 255, 0.08);
+  --color-chart-baseline: #475569;
+  --color-chart-good: #0ca30c;
+  --color-chart-warning: #fab219;
+  --color-chart-critical: #e66767;
 }
 
 :root {

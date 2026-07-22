@@ -3,6 +3,8 @@ import { AppLayout } from '../components/layout/AppLayout'
 import { LayoutProvider } from '../context/LayoutContext'
 import { AllContentPage } from '../pages/AllContentPage'
 import { ExceptionsPage } from '../pages/ExceptionsPage'
+import { FinPilotPage } from '../pages/FinPilotPage'
+import { HomePage } from '../pages/HomePage'
 import { OverviewPage } from '../pages/OverviewPage'
 import { PlaceholderPage } from '../pages/PlaceholderPage'
 import { ReconciliationHubOverviewPage } from '../pages/ReconciliationHubOverviewPage'
@@ -14,8 +16,6 @@ import { TransactionsPage } from '../pages/TransactionsPage'
 
 const placeholderRoutes: Array<{ path: string; title: string }> = [
   { path: 'search', title: 'Search' },
-  { path: 'home', title: 'Home' },
-  { path: 'finance-navigator', title: 'Finance Navigator' },
   { path: 'control-tower', title: 'Control Tower' },
   { path: 'one-view', title: 'One View' },
   { path: 'customer-intelligence/invoices', title: 'Invoices' },
@@ -50,6 +50,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/overview" replace /> },
       { path: 'overview', element: <OverviewPage /> },
+      { path: 'home', element: <HomePage /> },
       { path: 'content', element: <AllContentPage /> },
       { path: 'reconciliation', element: <ReconciliationPage /> },
       { path: 'reconciliation-hub/overview', element: <ReconciliationHubOverviewPage /> },
@@ -57,7 +58,8 @@ export const router = createBrowserRouter([
       { path: 'exceptions', element: <ExceptionsPage /> },
       { path: 'reports', element: <ReportsPage /> },
       { path: 'settings', element: <SettingsPage /> },
-      { path: 'reflex-ai', element: <ReflexAiPage /> },
+      { path: 'reflex-ai', element: <ReflexAiPage />, handle: { hideTopbar: true } },
+      { path: 'finance-navigator', element: <FinPilotPage /> },
       ...placeholderRoutes.map((route) => ({
         path: route.path,
         element: <PlaceholderPage title={route.title} />,

@@ -32,6 +32,7 @@ export const reflexAiHistory: AiHistoryGroup[] = [
     label: 'Today',
     items: [
       { id: 'summarize-trends', label: 'Summarize current trends in this dashboard', kind: 'app' },
+      { id: 'customer-risk-matrix', label: 'Which customers are at risk of non-payment right now?', kind: 'app' },
       { id: 'activity-spike', label: 'Activity spike July 20-21 WeLe IntelliTech', kind: 'chat' },
       { id: 'platform-baseline', label: 'Platform baseline week one metrics', kind: 'app' },
     ],

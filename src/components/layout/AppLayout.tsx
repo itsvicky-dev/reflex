@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, useMatches } from 'react-router-dom'
 import { useLayout } from '../../context/LayoutContext'
 import { useResizableWidth } from '../../hooks/useResizableWidth'
 import { AiPanel } from '../ai/AiPanel'
@@ -7,9 +7,13 @@ import { AiTriggerButton } from '../ai/AiTriggerButton'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 
+type RouteHandle = { hideTopbar?: boolean }
+
 export function AppLayout() {
   const { aiPanelOpen, setAiPanelOpen } = useLayout()
   const { pathname } = useLocation()
+  const matches = useMatches()
+  const hideTopbar = matches.some((match) => (match.handle as RouteHandle | undefined)?.hideTopbar)
   const isReflexAiPage = pathname.startsWith('/reflex-ai')
   const { width: aiPanelWidth, dragging, startResize } = useResizableWidth({
     storageKey: 'reconciliation.ai-panel-width',
@@ -24,7 +28,7 @@ export function AppLayout() {
       <Sidebar onOpenAiPanel={() => setAiPanelOpen(true)} aiPanelOpen={aiPanelOpen} />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[13px] border border-border bg-[#f4f5f6]">
-        <Topbar />
+        {!hideTopbar && <Topbar />}
         <main className={clsx('flex-1 overflow-hidden bg-app-bg', isReflexAiPage ? '' : 'overflow-y-auto p-6')}>
           <Outlet />
         </main>

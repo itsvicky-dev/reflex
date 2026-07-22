@@ -11,21 +11,21 @@ export function Topbar() {
   const title = current?.label ?? 'Overview'
 
   return (
-    <header className="flex items-center justify-between gap-3">
-      {/* <h1 className="text-[24px] font-semibold text-heading">{title}</h1>
+    <header className="flex items-center justify-between gap-3 px-5 pt-5 pb-1 ">
+      <h1 className="text-[24px] font-semibold text-heading">{title}</h1>
 
       <div className="flex items-center gap-3">
-        <ThemeSwitcher />
+        {/* <ThemeSwitcher /> */}
         <IconButton aria-label="Help">
           <HelpCircle className="h-4 w-4" />
         </IconButton>
         <Button variant="outline" size="sm">
           <Share2 className="h-3.5 w-3.5" /> Share
         </Button>
-        <Button size="sm">
+        {/* <Button size="sm">
           <SlidersHorizontal className="h-3.5 w-3.5" /> Customize
-        </Button>
-      </div> */}
+        </Button> */}
+      </div>
     </header>
   )
 }
