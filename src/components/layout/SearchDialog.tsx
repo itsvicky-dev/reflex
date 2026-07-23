@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { LayoutGrid, Search, Sparkles, TrendingUp, Users } from 'lucide-react'
+import { AlertTriangle, Landmark, Route, Search, Sparkles, Users } from 'lucide-react'
 import { useEffect, useRef, useState, type ElementType } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -23,36 +23,36 @@ type SuggestedItem = {
 const actions: ActionItem[] = [
   { id: 'advanced-search', label: 'Advanced search', icon: Search },
   { id: 'search-users', label: 'Search users', icon: Users },
-  { id: 'global-agent', label: 'Global Agent', icon: Sparkles, iconClassName: 'bg-accent text-white' },
+  { id: 'global-agent', label: 'Reflex AI', icon: Sparkles, iconClassName: 'bg-accent text-white' },
 ]
 
 const suggested: SuggestedItem[] = [
   {
-    id: 'skill-bridge-enrollment-funnel',
-    label: 'Skill Bridge Enrollment Funnel',
-    icon: LayoutGrid,
+    id: 'unmatched-transactions',
+    label: 'Unmatched Transactions',
+    icon: AlertTriangle,
+    iconClassName: 'text-orange-500',
+    author: 'amp • WeLe IntelliTech',
+    timeAgo: '2 days ago',
+    views: 18,
+  },
+  {
+    id: 'bank-statement-reconciliation',
+    label: 'Bank Statement Reconciliation',
+    icon: Landmark,
+    iconClassName: 'text-teal-500',
+    author: 'amp • WeLe IntelliTech',
+    timeAgo: '5 days ago',
+    views: 12,
+  },
+  {
+    id: 'payee-mapping-review',
+    label: 'Payee Mapping Review',
+    icon: Route,
     iconClassName: 'text-pink-500',
     author: 'Praburaju S',
-    timeAgo: '3 months ago',
-    views: 0,
-  },
-  {
-    id: 'new-users-who-didnt-return',
-    label: "New users who didn't return",
-    icon: Users,
-    iconClassName: 'text-teal-500',
-    author: 'amp • WeLe IntelliTech',
-    timeAgo: '3 months ago',
-    views: 3,
-  },
-  {
-    id: 'product-qualified-leads',
-    label: 'Product qualified leads',
-    icon: TrendingUp,
-    iconClassName: 'text-teal-500',
-    author: 'amp • WeLe IntelliTech',
-    timeAgo: '3 months ago',
-    views: 5,
+    timeAgo: '1 week ago',
+    views: 6,
   },
 ]
 

@@ -5,7 +5,6 @@ import {
   Brain,
   CreditCard,
   Database,
-  Eye,
   FileSearch,
   FileText,
   Flag,
@@ -60,7 +59,6 @@ export const topNav: NavLink[] = [
   { kind: 'link', to: '/reflex-ai', label: 'Reflex AI', icon: Sparkles },
   { kind: 'link', to: '/finance-navigator', label: 'FinPilot', icon: imageIcon(finPilotIcon) },
   { kind: 'link', to: '/control-tower', label: 'Control Tower', icon: TowerControl },
-  { kind: 'link', to: '/one-view', label: 'One View', icon: Eye },
 ]
 
 export const quickAccess: { id: string; label: string; icon: LucideIcon }[] = [
@@ -72,10 +70,22 @@ export const quickAccess: { id: string; label: string; icon: LucideIcon }[] = [
 export const productsNav: NavEntry[] = [
   {
     kind: 'group',
+    id: 'reconciliation-hub',
+    label: 'Reconciliation Hub',
+    icon: Scale,
+    defaultOpen: true,
+    children: [
+      { kind: 'link', to: '/reconciliation-hub/overview', label: 'Overview', icon: LineChart },
+      { kind: 'link', to: '/reconciliation-hub/workbench', label: 'Workbench', icon: Wrench },
+      { kind: 'link', to: '/reconciliation-hub/payee-mapping', label: 'Payee Mapping', icon: Route },
+      { kind: 'link', to: '/reconciliation-hub/bank-statements', label: 'Bank Statements', icon: Landmark },
+    ],
+  },
+  {
+    kind: 'group',
     id: 'customer-intelligence',
     label: 'Customer Intelligence',
     icon: Users,
-    defaultOpen: true,
     children: [
       { kind: 'link', to: '/customer-intelligence/invoices', label: 'Invoices', icon: FileText },
       { kind: 'link', to: '/customer-intelligence/payments', label: 'Payments', icon: CreditCard },
@@ -95,20 +105,8 @@ export const productsNav: NavEntry[] = [
   },
   {
     kind: 'group',
-    id: 'reconciliation-hub',
-    label: 'Reconciliation Hub',
-    icon: Scale,
-    children: [
-      { kind: 'link', to: '/reconciliation-hub/overview', label: 'Overview', icon: LineChart },
-      { kind: 'link', to: '/reconciliation-hub/workbench', label: 'Workbench', icon: Wrench },
-      { kind: 'link', to: '/reconciliation-hub/payee-mapping', label: 'Payee Mapping', icon: Route },
-      { kind: 'link', to: '/reconciliation-hub/bank-statements', label: 'Bank Statements', icon: Landmark },
-    ],
-  },
-  {
-    kind: 'group',
     id: 'intellitrend',
-    label: 'IntelliTrend',
+    label: 'Intelli Trend',
     icon: LineChart,
     children: [
       { kind: 'link', to: '/intellitrend/behavioral-timeline', label: 'Behavioral Timeline', icon: Activity },

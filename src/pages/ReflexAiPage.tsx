@@ -1,10 +1,13 @@
 import { clsx } from 'clsx'
 import {
   ArrowUp,
+  BanknoteX,
+  CalendarMinus,
   ChartLine,
   ChartScatter,
   Check,
   ChevronDown,
+  FileStack,
   Home as HomeIcon,
   LayoutGrid,
   Link2,
@@ -16,8 +19,11 @@ import {
   Plus,
   Search,
   Sparkles,
+  SquareAsterisk,
   SquarePen,
+  Summary,
   Users,
+  WalletCards,
   X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -29,6 +35,15 @@ import { WowEventChart } from '../components/ai/charts/WowEventChart'
 import { RiskMatrixChart } from '../components/ai/charts/RiskMatrixChart'
 
 const DEFAULT_ID = 'summarize-trends'
+
+const SUGGESTIONS = [
+  { label: 'Predict cash flow for the next 30 days', icon: WalletCards },
+  { label: 'Find customers with increasing payment risk', icon: SquareAsterisk },
+  { label: 'Explain why collections dropped this month', icon: CalendarMinus },
+  { label: 'Show invoices requiring immediate action', icon: FileStack },
+  { label: 'Investigate reconciliation exceptions', icon: BanknoteX },
+  { label: "Compare this month's performance with last month", icon: Summary },
+]
 
 export function ReflexAiPage() {
   const navigate = useNavigate()
@@ -277,6 +292,19 @@ export function ReflexAiPage() {
                 <p className="max-w-sm text-xs text-ink-muted">
                   Ask questions, uncover insights, predict outcomes, and take action across your finance operations.
                 </p>
+                <div className="mt-3 flex max-w-md flex-wrap items-center justify-center gap-2">
+                  {SUGGESTIONS.map((suggestion) => (
+                    <button
+                      key={suggestion.label}
+                      type="button"
+                      onClick={() => setMessage(suggestion.label)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-ink transition hover:border-accent hover:bg-accent/5 hover:text-accent"
+                    >
+                      <suggestion.icon className="h-3.5 w-3.5" />
+                      {suggestion.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>

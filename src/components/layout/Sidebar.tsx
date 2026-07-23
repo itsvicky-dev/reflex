@@ -397,7 +397,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
       {collapsed && <div className="border-t border-border mx-2" />}
 
       <nav className={clsx('scrollbar-hide flex-1 overflow-y-auto overflow-x-hidden pb-3', collapsed ? 'space-y-2' : 'space-y-4')}>
-        <div className={clsx(collapsed ? 'space-y-1.5' : 'space-y-1 mb-0')}>
+        <div className={clsx(collapsed ? 'space-y-1.5' : 'space-y-1 mb-1')}>
           {topNav.map((item) =>
             item.to === '/search' ? (
               <SearchTrigger key={item.to} item={item} collapsed={collapsed} onClick={() => setSearchOpen(true)} />
@@ -407,7 +407,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
           )}
         </div>
 
-        <div className={clsx('border-t border-border', collapsed ? 'mx-2' : 'mx-3 mt-3 mb-1')} />
+        {/* <div className={clsx('border-t border-border', collapsed ? 'mx-2' : 'mx-3 mt-3 mb-1')} /> */}
 
         {/* <div className={clsx('flex items-center gap-1.5', collapsed ? 'flex-wrap justify-center py-1' : 'py-2')}>
           {quickAccess.map((item) => (

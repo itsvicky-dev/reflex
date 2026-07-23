@@ -1,6 +1,7 @@
 import type { BadgeTone } from '../components/ui/Badge'
 import type { ReportStatus, RunStatus, Severity, TransactionStatus } from '../data/mockReconciliation'
 import type { BankFeedStatus } from '../data/mockReconciliationHub'
+import type { RecentActivityStatus } from '../data/mockHome'
 
 export const transactionTone: Record<TransactionStatus, BadgeTone> = {
   Matched: 'success',
@@ -29,5 +30,12 @@ export const bankFeedTone: Record<BankFeedStatus, BadgeTone> = {
   'Auto Matched': 'success',
   'Partial Match': 'warning',
   'Needs Review': 'warning',
+  Unmatched: 'danger',
+}
+
+export const recentActivityTone: Record<RecentActivityStatus, BadgeTone> = {
+  Matched: 'success',
+  Cleared: 'success',
+  Partial: 'warning',
   Unmatched: 'danger',
 }
