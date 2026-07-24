@@ -3,6 +3,7 @@ import {
   Bell,
   Bot,
   Brain,
+  Contact,
   CreditCard,
   Database,
   FileSearch,
@@ -87,6 +88,7 @@ export const productsNav: NavEntry[] = [
     label: 'Customer Intelligence',
     icon: Users,
     children: [
+      { kind: 'link', to: '/customer-intelligence/customers', label: 'Customers', icon: Contact },
       { kind: 'link', to: '/customer-intelligence/invoices', label: 'Invoices', icon: FileText },
       { kind: 'link', to: '/customer-intelligence/payments', label: 'Payments', icon: CreditCard },
       { kind: 'link', to: '/customer-intelligence/prediction', label: 'Prediction', icon: TrendingUp },

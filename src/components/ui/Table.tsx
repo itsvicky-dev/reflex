@@ -25,6 +25,9 @@ type TableProps<T> = {
   expandable?: boolean
   expandColumnKey?: string
   renderExpanded?: (row: T) => ReactNode
+  /** Controls expanded rows externally, e.g. for an "expand all" action. Uncontrolled by default. */
+  expandedKeys?: Set<string>
+  onExpandedKeysChange?: (keys: Set<string>) => void
   /** Column to visually emphasize (solid accent fill), e.g. the currently active view. */
   highlightColumnKey?: string
 }
@@ -42,12 +45,15 @@ export function Table<T>({
   expandColumnKey,
   renderExpanded,
   highlightColumnKey,
+  expandedKeys: controlledExpandedKeys,
+  onExpandedKeysChange,
 }: TableProps<T>) {
   const [internalSelected, setInternalSelected] = useState<Set<string>>(new Set())
-  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set())
+  const [internalExpandedKeys, setInternalExpandedKeys] = useState<Set<string>>(new Set())
   const headerCheckboxRef = useRef<HTMLInputElement>(null)
 
   const selected = selectedKeys ?? internalSelected
+  const expandedKeys = controlledExpandedKeys ?? internalExpandedKeys
   const allKeys = data.map(rowKey)
   const allSelected = allKeys.length > 0 && allKeys.every((key) => selected.has(key))
   const someSelected = allKeys.some((key) => selected.has(key))
@@ -77,12 +83,11 @@ export function Table<T>({
   }
 
   function toggleExpanded(key: string) {
-    setExpandedKeys((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
+    const next = new Set(expandedKeys)
+    if (next.has(key)) next.delete(key)
+    else next.add(key)
+    onExpandedKeysChange?.(next)
+    if (!controlledExpandedKeys) setInternalExpandedKeys(next)
   }
 
   return (

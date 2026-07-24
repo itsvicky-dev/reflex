@@ -154,6 +154,64 @@ export const reconciliationProgress = 87
 
 export const todaysReconciliationGeneratedAt = '10:30 AM'
 
+export type ReconciliationPeriodFilter = 'today' | 'week' | 'month' | 'year'
+
+export type ReconciliationBreakdownPoint = {
+  id: string
+  label: string
+  sublabel: string
+  total: number
+  aiReconciled: number
+  manualReconciled: number
+  needsReview: number
+}
+
+export type ReconciliationBreakdown = {
+  rangeLabel: string
+  points: ReconciliationBreakdownPoint[]
+}
+
+export const reconciliationBreakdownByFilter: Record<ReconciliationPeriodFilter, ReconciliationBreakdown> = {
+  today: {
+    rangeLabel: '07 May 2026',
+    points: [
+      { id: 'morning', label: 'Morning', sublabel: '12 AM – 12 PM', total: 140, aiReconciled: 115, manualReconciled: 12, needsReview: 13 },
+      { id: 'afternoon', label: 'Afternoon', sublabel: '12 PM – 5 PM', total: 168, aiReconciled: 138, manualReconciled: 18, needsReview: 12 },
+      { id: 'evening', label: 'Evening', sublabel: '5 PM – 12 AM', total: 96, aiReconciled: 74, manualReconciled: 9, needsReview: 13 },
+    ],
+  },
+  week: {
+    rangeLabel: 'May 04 – May 10',
+    points: [
+      { id: 'mon', label: 'Mon', sublabel: 'May 04', total: 152, aiReconciled: 121, manualReconciled: 16, needsReview: 15 },
+      { id: 'tue', label: 'Tue', sublabel: 'May 05', total: 134, aiReconciled: 108, manualReconciled: 14, needsReview: 12 },
+      { id: 'wed', label: 'Wed', sublabel: 'May 06', total: 146, aiReconciled: 119, manualReconciled: 15, needsReview: 12 },
+      { id: 'thu', label: 'Thu', sublabel: 'May 07', total: 161, aiReconciled: 132, manualReconciled: 17, needsReview: 12 },
+      { id: 'fri', label: 'Fri', sublabel: 'May 08', total: 158, aiReconciled: 129, manualReconciled: 16, needsReview: 13 },
+      { id: 'sat', label: 'Sat', sublabel: 'May 09', total: 89, aiReconciled: 70, manualReconciled: 9, needsReview: 10 },
+      { id: 'sun', label: 'Sun', sublabel: 'May 10', total: 64, aiReconciled: 49, manualReconciled: 7, needsReview: 8 },
+    ],
+  },
+  month: {
+    rangeLabel: 'Apr 20 – May 18',
+    points: [
+      { id: 'week-1', label: 'Week 1', sublabel: 'Apr 20 – Apr 26', total: 812, aiReconciled: 654, manualReconciled: 88, needsReview: 70 },
+      { id: 'week-2', label: 'Week 2', sublabel: 'Apr 27 – May 03', total: 764, aiReconciled: 612, manualReconciled: 81, needsReview: 71 },
+      { id: 'week-3', label: 'Week 3', sublabel: 'May 04 – May 10', total: 903, aiReconciled: 731, manualReconciled: 94, needsReview: 78 },
+      { id: 'week-4', label: 'Week 4', sublabel: 'May 11 – May 18', total: 856, aiReconciled: 692, manualReconciled: 89, needsReview: 75 },
+    ],
+  },
+  year: {
+    rangeLabel: '2026',
+    points: [
+      { id: 'q1', label: 'Q1', sublabel: 'Jan – Mar', total: 9840, aiReconciled: 7910, manualReconciled: 1030, needsReview: 900 },
+      { id: 'q2', label: 'Q2', sublabel: 'Apr – Jun', total: 10620, aiReconciled: 8540, manualReconciled: 1120, needsReview: 960 },
+      { id: 'q3', label: 'Q3', sublabel: 'Jul – Sep', total: 11380, aiReconciled: 9180, manualReconciled: 1190, needsReview: 1010 },
+      { id: 'q4', label: 'Q4', sublabel: 'Oct – Dec', total: 10940, aiReconciled: 8790, manualReconciled: 1160, needsReview: 990 },
+    ],
+  },
+}
+
 export type AttentionItem = {
   id: string
   label: string

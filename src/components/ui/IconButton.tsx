@@ -9,10 +9,10 @@ export function IconButton({ active, className, ...props }: IconButtonProps) {
   return (
     <button
       className={clsx(
-        'inline-flex h-9 w-9 items-center justify-center rounded-xl border transition',
+        'inline-flex h-8 w-8 items-center justify-center rounded-xl border transition text-black ',
         active
-          ? 'border-accent/30 bg-accent/10 text-accent'
-          : 'border-border text-ink-muted hover:bg-surface-hover hover:text-ink',
+          ? 'border-accent/30 bg-white'
+          : 'border-border hover:bg-surface-hover hover:text-ink bg-white',
         className,
       )}
       {...props}

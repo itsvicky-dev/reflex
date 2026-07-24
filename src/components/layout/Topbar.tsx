@@ -1,9 +1,8 @@
-import { HelpCircle, Share2, SlidersHorizontal } from 'lucide-react'
+import { HelpCircle } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { allNavLinks } from '../../config/navigation'
-import { ThemeSwitcher } from '../theme/ThemeSwitcher'
-import { Button } from '../ui/Button'
 import { IconButton } from '../ui/IconButton'
+import { ShareMenu } from './ShareMenu'
 
 export function Topbar() {
   const { pathname } = useLocation()
@@ -19,9 +18,7 @@ export function Topbar() {
         <IconButton aria-label="Help">
           <HelpCircle className="h-4 w-4" />
         </IconButton>
-        <Button variant="outline" size="sm">
-          <Share2 className="h-3.5 w-3.5" /> Share
-        </Button>
+        <ShareMenu />
         {/* <Button size="sm">
           <SlidersHorizontal className="h-3.5 w-3.5" /> Customize
         </Button> */}

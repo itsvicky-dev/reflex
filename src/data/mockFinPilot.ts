@@ -101,6 +101,8 @@ export const collectionsSummary = {
     tail: 'is expected to clear',
     amount: '₹72 Lakhs',
     suffix: 'before 4 PM.',
+    detail:
+      "That would put today's collections 12% above the trailing 7-day average, driven largely by early settlements from repeat customers.",
     confidence: 94,
   },
 }
@@ -130,6 +132,8 @@ export const cashFlowForecast = {
   insight: {
     lead: 'Cash inflow is expected to peak on 18 May due to large payments from',
     links: ['ABC Industries', 'XYZ Corp'],
+    detail:
+      'Together these two payments account for nearly 60% of the peak-day inflow, and the forecast keeps this week 21% above the previous 7 days despite the Monday dip.',
   },
 }
 
@@ -186,6 +190,8 @@ export const customerRiskMatrix = {
   insight: {
     lead: 'Immediate collections escalation is recommended for',
     links: ['ABC Industries', 'Global Steel Ltd'],
+    detail:
+      'Both accounts have crossed 90 days past due and together make up ₹15.8 Cr of outstanding exposure — prioritizing outreach here could cut the total at-risk balance nearly in half.',
   },
   chart: {
     kind: 'scatter',

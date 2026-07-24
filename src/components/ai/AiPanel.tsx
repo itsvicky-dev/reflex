@@ -1,8 +1,10 @@
+import { clsx } from 'clsx'
 import { ArrowLeft, History, LayoutGrid, Mic, PanelRightClose, Pencil, Plus, Send, Sparkles, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { aiPanelHistory } from '../../config/aiHistory'
 import { allNavLinks } from '../../config/navigation'
+import { useAiChat } from '../../context/AiChatContext'
 import { IconButton } from '../ui/IconButton'
 
 const suggestions = [
@@ -20,6 +22,12 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const current = allNavLinks.find((item) => pathname.startsWith(item.to))
+  const { messages, isThinking, sendMessage, startNewChat } = useAiChat()
+  const threadEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    threadEndRef.current?.scrollIntoView({ block: 'end' })
+  }, [messages, isThinking])
 
   return (
     <aside className="flex h-full w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
@@ -29,7 +37,7 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
             <ArrowLeft className="h-4 w-4" />
           </IconButton>
         ) : (
-          <IconButton aria-label="New chat">
+          <IconButton aria-label="New chat" onClick={startNewChat}>
             <Pencil className="h-4 w-4" />
           </IconButton>
         )}
@@ -77,26 +85,55 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
         </div>
       ) : (
         <>
-          <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-            <div className="relative flex h-16 w-16 items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-accent/20 blur-xl" />
-              <Sparkles className="relative h-8 w-8 text-accent" />
+          {messages.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+              <div className="relative flex h-16 w-16 items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-accent/20 blur-xl" />
+                <Sparkles className="relative h-8 w-8 text-accent" />
+              </div>
+              <h2 className="mt-4 text-xl font-semibold text-heading">How can Reflex help you today?</h2>
+              <span className='text-xs'>Ask questions, uncover insights, predict outcomes, and take action across your finance operat</span>
+              <div className="mt-6 w-full space-y-2">
+                {suggestions.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => sendMessage(item, current?.label)}
+                    className="w-full rounded-xl border border-border px-4 py-2.5 text-left text-xs text-ink transition hover:border-accent/30 hover:bg-accent/5"
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
             </div>
-            <h2 className="mt-4 text-xl font-semibold text-heading">How can Reflex help you today?</h2>
-            <span className='text-xs'>Ask questions, uncover insights, predict outcomes, and take action across your finance operat</span>
-            <div className="mt-6 w-full space-y-2">
-              {suggestions.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => setMessage(item)}
-                  className="w-full rounded-xl border border-border px-4 py-2.5 text-left text-xs text-ink transition hover:border-accent/30 hover:bg-accent/5"
-                >
-                  {item}
-                </button>
+          ) : (
+            <div className="scrollbar-hide flex-1 space-y-3 overflow-y-auto px-3 py-3">
+              {messages.map((item) => (
+                <div key={item.id} className={clsx('flex', item.role === 'user' ? 'justify-end' : 'justify-start')}>
+                  <div
+                    className={clsx(
+                      'max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed',
+                      item.role === 'user'
+                        ? 'bg-accent text-accent-content'
+                        : 'border border-border bg-surface text-ink',
+                    )}
+                  >
+                    {item.text}
+                  </div>
+                </div>
               ))}
+              {isThinking && (
+                <div className="flex justify-start">
+                  <div className="flex items-center gap-1 rounded-2xl border border-border bg-surface px-3 py-2">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent [animation-delay:-0.2s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent [animation-delay:-0.1s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent" />
+                  </div>
+                </div>
+              )}
+              <div ref={threadEndRef} />
             </div>
-          </div>
+          )}
 
           <div className="space-y-3 px-3 pb-3">
             <div className="flex items-center gap-1.5 text-xs text-ink-muted">
@@ -107,6 +144,7 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
             <form
               onSubmit={(event) => {
                 event.preventDefault()
+                sendMessage(message, current?.label)
                 setMessage('')
               }}
               className="rounded-xl border border-border p-2"

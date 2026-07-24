@@ -149,19 +149,17 @@ function CollectionsCard() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl bg-emerald-50 p-4 dark:bg-emerald-500/10 @sm:flex-row @sm:items-center @sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <p className="text-sm leading-relaxed text-ink">
-            <span className="font-medium text-emerald-700 dark:text-emerald-400">AI Insight</span>
-            <br />
+      <div className="flex flex-col gap-3 border-t border-border pt-4 @sm:flex-row @sm:items-center @sm:justify-between">
+        <div className="flex min-w-0 items-start gap-2">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <p className="text-sm leading-relaxed text-ink-muted">
+            <span className="font-medium text-emerald-700 dark:text-emerald-400">AI Insight — </span>
             {insight.lead} <span className="font-semibold text-heading">{insight.highlight}</span> {insight.tail}{' '}
-            <span className="font-semibold text-emerald-700 dark:text-emerald-400">{insight.amount}</span> {insight.suffix}
+            <span className="font-semibold text-emerald-700 dark:text-emerald-400">{insight.amount}</span> {insight.suffix}{' '}
+            {insight.detail}
           </p>
         </div>
-        <div className="shrink-0 pl-11 @sm:pl-0 @sm:text-right">
+        <div className="shrink-0 pl-6 @sm:pl-0 @sm:text-right">
           <p className="text-xs text-ink-muted">Confidence</p>
           <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">{insight.confidence}%</p>
           <DashProgress value={insight.confidence} />
@@ -279,21 +277,34 @@ function CashFlowCard() {
               <p className="mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">↑ {vsPrevious7dPct}% vs Previous 7 Days</p>
             </div>
 
-
-            <div className="flex min-w-0 items-start gap-3 rounded-xl bg-accent/5 p-4">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                <Sparkles className="h-4 w-4" />
+            <div className="grid grid-cols-3 gap-3 rounded-lg border border-border p-3">
+              <div>
+                <p className="text-[11px] text-ink-muted">Avg Daily Inflow</p>
+                <p className="mt-0.5 text-sm font-semibold text-heading">{avgDailyInflow}</p>
               </div>
-              <p className="text-xs leading-relaxed text-ink">
-                <span className="font-medium text-accent">AI Insight</span>
-                <br />
+              <div>
+                <p className="text-[11px] text-ink-muted">Best Day</p>
+                <p className="mt-0.5 text-sm font-semibold text-heading">{bestDay.value}</p>
+                <p className="text-[10px] text-ink-muted">{bestDay.label}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-ink-muted">Large Inflows (7d)</p>
+                <p className="mt-0.5 text-sm font-semibold text-heading">{upcomingLargeInflows}</p>
+              </div>
+            </div>
+
+            <div className="flex min-w-0 items-start gap-2">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <p className="text-xs leading-relaxed text-ink-muted">
+                <span className="font-medium text-accent">AI Insight — </span>
                 {insight.lead}{' '}
                 {insight.links.map((link, index) => (
                   <span key={link}>
                     <span className="font-medium text-accent">{link}</span>
                     {index < insight.links.length - 1 ? ' and ' : '.'}
                   </span>
-                ))}
+                ))}{' '}
+                {insight.detail}
               </p>
             </div>
           </div>
@@ -521,20 +532,27 @@ function RiskMatrixCard() {
               <p className="mt-1 text-xs font-semibold text-rose-600 dark:text-rose-400">{totalAtRiskCr} at risk of non-payment</p>
             </div>
 
-            <div className="flex min-w-0 items-start gap-3 rounded-xl bg-accent/5 p-4">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                <Sparkles className="h-4 w-4" />
+            <div className="rounded-lg border border-border p-3 text-xs">
+              <p className="text-ink-muted">Top At-Risk Account</p>
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <span className="font-semibold text-heading">{topAccount.name}</span>
+                <span className="font-semibold text-rose-600 dark:text-rose-400">{topAccount.outstanding}</span>
               </div>
-              <p className="text-xs leading-relaxed text-ink">
-                <span className="font-medium text-accent">AI Insight</span>
-                <br />
+              <p className="mt-0.5 text-ink-muted">{topAccount.delayDays} days past due</p>
+            </div>
+
+            <div className="flex min-w-0 items-start gap-2">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <p className="text-xs leading-relaxed text-ink-muted">
+                <span className="font-medium text-accent">AI Insight — </span>
                 {insight.lead}{' '}
                 {insight.links.map((link, index) => (
                   <span key={link}>
                     <span className="font-medium text-accent">{link}</span>
                     {index < insight.links.length - 1 ? ' and ' : '.'}
                   </span>
-                ))}
+                ))}{' '}
+                {insight.detail}
               </p>
             </div>
           </div>

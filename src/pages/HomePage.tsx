@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Clock,
   FileText,
+  Info,
   Landmark,
   RefreshCcw,
   TrendingDown,
@@ -18,11 +19,14 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
-import { Fragment } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
+import { AskAiPopover } from '../components/ui/AskAiPopover'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
+import { ReconciliationBreakdownChart } from '../components/ui/ReconciliationBreakdownChart'
 import {
   outstandingAgeing,
   outstandingByCustomerType,
@@ -37,32 +41,42 @@ import {
 } from '../data/mockHome'
 import {
   attentionItems,
-  reconciliationProgress,
-  todaysReconciliationBreakdown,
+  reconciliationBreakdownByFilter,
   todaysReconciliationGeneratedAt,
   totalReceivedAmount,
   type AttentionItem,
+  type ReconciliationPeriodFilter,
 } from '../data/mockReconciliationHub'
 import { recentActivityTone } from '../lib/status'
 
 const USER_FIRST_NAME = 'Praburaju'
 
-function getGreeting() {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 17) return 'Good afternoon'
-  return 'Good evening'
+function getDayPeriod(hour: number) {
+  if (hour < 12) return 'morning'
+  if (hour < 17) return 'afternoon'
+  return 'evening'
+}
+
+function getGreetingMessage() {
+  const now = new Date()
+  const period = getDayPeriod(now.getHours())
+  const dayName = now.toLocaleDateString('en-US', { weekday: 'long' })
+  return `Happy ${dayName} ${period}`
+}
+
+function formatClockTime(date: Date) {
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 const currency = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(value)
 
-const breakdownDotClasses: Record<string, string> = {
-  neutral: 'bg-ink-muted',
-  success: 'bg-emerald-500',
-  accent: 'bg-accent',
-  warning: 'bg-amber-500',
-}
+const dateFilterOptions: { id: ReconciliationPeriodFilter; label: string; cardLabel: string }[] = [
+  { id: 'today', label: 'Today', cardLabel: "Today's Reconciliation" },
+  { id: 'week', label: 'This Week', cardLabel: "This Week's Reconciliation" },
+  { id: 'month', label: 'This Month', cardLabel: "This Month's Reconciliation" },
+  { id: 'year', label: 'This Year', cardLabel: "This Year's Reconciliation" },
+]
 
 const attentionIcons: Record<string, LucideIcon> = {
   'unmatched-payments': AlertTriangle,
@@ -74,12 +88,12 @@ const attentionIcons: Record<string, LucideIcon> = {
 
 const toneClasses: Record<AttentionItem['tone'], { chip: string; button: string }> = {
   danger: {
-    chip: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
-    button: 'border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-500/30 dark:text-rose-400 dark:hover:bg-rose-500/10',
+    chip: 'bg-ink/10 text-heading',
+    button: 'border-border text-ink hover:bg-surface-hover',
   },
   warning: {
-    chip: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-    button: 'border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-500/30 dark:text-amber-400 dark:hover:bg-amber-500/10',
+    chip: 'bg-surface-hover text-ink-muted',
+    button: 'border-border hover:bg-surface-hover',
   },
   accent: {
     chip: 'bg-accent/10 text-accent',
@@ -88,10 +102,10 @@ const toneClasses: Record<AttentionItem['tone'], { chip: string; button: string 
 }
 
 const ageingBarClasses: Record<string, string> = {
-  success: 'bg-emerald-500',
-  warning: 'bg-amber-500',
-  orange: 'bg-orange-500',
-  danger: 'bg-rose-500',
+  success: 'bg-ink-muted/30',
+  warning: 'bg-ink-muted',
+  orange: 'bg-ink',
+  danger: 'bg-heading',
 }
 
 const methodIcons: Record<PaymentMethod, LucideIcon> = {
@@ -119,44 +133,14 @@ function MiniSparkline({ data, className }: { data: number[]; className?: string
   )
 }
 
-function ProgressRing({ value }: { value: number }) {
-  const radius = 52
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference * (1 - value / 100)
-
+function CardHeader({ icon: Icon, title, aiSuggestions }: { icon: LucideIcon; title: string; aiSuggestions?: string[] }) {
   return (
-    <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
-      <svg viewBox="0 0 128 128" className="h-32 w-32 -rotate-90">
-        <circle cx="64" cy="64" r={radius} fill="none" stroke="currentColor" strokeWidth="9" className="text-surface-hover" />
-        <circle
-          cx="64"
-          cy="64"
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="9"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          className="text-accent transition-[stroke-dashoffset] duration-500 ease-out"
-        />
-      </svg>
-      <div className="absolute flex flex-col items-center text-center">
-        <span className="text-xl font-semibold text-heading">{value}%</span>
-        <span className="text-[9px] leading-tight text-ink-muted">Reconciliation</span>
-        <span className="text-[9px] leading-tight text-ink-muted">Progress</span>
-      </div>
-    </div>
-  )
-}
-
-function CardHeader({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
+    <div className="flex items-center gap-1.5">
+      {/* <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
         <Icon className="h-3.5 w-3.5" />
-      </div>
+      </div> */}
       <h3 className="text-sm font-semibold text-heading">{title}</h3>
+      <AskAiPopover contextLabel={title} suggestions={aiSuggestions} />
     </div>
   )
 }
@@ -231,133 +215,189 @@ const partialAttention = attentionItems.find((item) => item.id === 'partial-paym
 export function HomePage() {
   const navigate = useNavigate()
 
+  const [dateFilter, setDateFilter] = useState<ReconciliationPeriodFilter>('week')
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
+  const [filterMenuPosition, setFilterMenuPosition] = useState<{ top: number; left: number } | null>(null)
+
+  const filterButtonRef = useRef<HTMLButtonElement>(null)
+  const filterMenuRef = useRef<HTMLDivElement>(null)
+
+  const activeFilter = dateFilterOptions.find((option) => option.id === dateFilter)!
+  const activeBreakdown = reconciliationBreakdownByFilter[dateFilter]
+  const lastSyncedLabel = formatClockTime(new Date(Date.now() - 10 * 60 * 1000))
+
+  useLayoutEffect(() => {
+    if (!filterMenuOpen || !filterButtonRef.current) return
+    const rect = filterButtonRef.current.getBoundingClientRect()
+    setFilterMenuPosition({ top: rect.bottom + 6, left: rect.left })
+  }, [filterMenuOpen])
+
+  useEffect(() => {
+    if (!filterMenuOpen) return
+    function handlePointerDown(event: MouseEvent) {
+      const target = event.target as Node
+      if (filterMenuRef.current?.contains(target) || filterButtonRef.current?.contains(target)) return
+      setFilterMenuOpen(false)
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setFilterMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [filterMenuOpen])
+
   return (
     <section className="@container space-y-4">
-      <div className="flex flex-col gap-3 @lg:flex-row @lg:items-start @lg:justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-1.5 text-lg font-semibold text-heading">
-            {getGreeting()}, {USER_FIRST_NAME} <span aria-hidden>👋</span>
+            {getGreetingMessage()}, {USER_FIRST_NAME} <span aria-hidden>👋</span>
           </h1>
           <p className="mt-0.5 text-xs text-ink-muted">Here&apos;s your payment reconciliation status as of today.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
           <span className="flex items-center gap-1.5 text-xs text-ink-muted">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Last synced: Today, {todaysReconciliationGeneratedAt}
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+            Last synced: Today, {lastSyncedLabel}
           </span>
-          <button type="button" className="flex items-center gap-1.5 text-xs font-medium text-accent hover:underline">
+          <Button type="button" variant="accent-outline" className="flex items-center gap-1.5 text-xs font-medium !p-1 !px-2">
             <RefreshCcw className="h-3 w-3" /> Sync Data
-          </button>
+          </Button>
           <button
+            ref={filterButtonRef}
             type="button"
+            onClick={() => setFilterMenuOpen((open) => !open)}
             className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-ink hover:bg-surface-hover"
           >
-            <CalendarDays className="h-3 w-3 text-ink-muted" /> July 2026 <ChevronDown className="h-3 w-3 text-ink-muted" />
+            <CalendarDays className="h-3 w-3 text-ink-muted" /> {activeFilter.label}{' '}
+            <ChevronDown className={clsx('h-3 w-3 text-ink-muted transition-transform', filterMenuOpen && 'rotate-180')} />
           </button>
+
+          {filterMenuOpen &&
+            filterMenuPosition &&
+            createPortal(
+              <div
+                ref={filterMenuRef}
+                style={{ top: filterMenuPosition.top, left: filterMenuPosition.left }}
+                className="fixed z-50 w-40 overflow-hidden rounded-lg border border-border bg-surface py-1 shadow-2xl"
+              >
+                {dateFilterOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => {
+                      setDateFilter(option.id)
+                      setFilterMenuOpen(false)
+                    }}
+                    className={clsx(
+                      'flex w-full items-center justify-between px-3 py-1.5 text-left text-xs transition hover:bg-surface-hover',
+                      option.id === dateFilter ? 'font-medium text-accent' : 'text-ink',
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>,
+              document.body,
+            )}
         </div>
       </div>
 
-      <div className="grid gap-4 @sm:grid-cols-2 @4xl:grid-cols-4">
-        <Card className="relative overflow-hidden p-4">
+      <div className="scrollbar-hide flex gap-4 overflow-x-auto bg-white p-3 rounded-lg">
+        <div className="relative min-w-[220px] flex-1 shrink-0 overflow-hidden p-2 px-4 border border-border rounded-lg">
           <div className="flex gap-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent">
               <Wallet className="h-3.5 w-3.5" />
             </div>
             <div>
-              <p className="mt-2.5 text-xs font-medium text-ink-muted">Total Outstanding</p>
-              <p className="mt-1 text-xl font-semibold text-rose-600 dark:text-rose-400">{currency(totalOutstanding)}</p>
+              <p className="mt-2.5 text-sm font-medium text-ink-muted">Total Outstanding</p>
+              <p className="mt-1 text-xl font-semibold text-heading">{currency(totalOutstanding)}</p>
+              <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-green-500">
+                <TrendingDown className="h-3 w-3" /> {Math.abs(outstandingChangePct)}% vs last month
+              </p>
             </div>
           </div>
-          <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-rose-600 dark:text-rose-400">
-            <TrendingDown className="h-3 w-3" /> {Math.abs(outstandingChangePct)}% vs last month
-          </p>
-          <p className="text-[11px] text-ink-muted">{totalOpenInvoices} open invoices</p>
-          <MiniSparkline data={outstandingTrend} className="absolute bottom-3 right-3 h-7 w-16 text-rose-400/60" />
-        </Card>
+          {/* <p className="text-[11px] text-ink-muted">{totalOpenInvoices} open invoices</p> */}
+        </div>
 
-        <Card className="p-4">
+        <div className="min-w-[220px] flex-1 shrink-0 p-2 border border-border rounded-lg">
           <div className="flex gap-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent">
               <CheckCircle2 className="h-3.5 w-3.5" />
             </div>
             <div>
-              <p className="mt-2.5 text-xs font-medium text-ink-muted">Reconciled Amount</p>
-              <p className="mt-1 text-xl font-semibold text-emerald-600 dark:text-emerald-400">{currency(totalReceivedAmount)}</p>
+              <p className="mt-2.5 text-sm font-medium text-ink-muted">Reconciled Amount</p>
+              <p className="mt-1 text-xl font-semibold text-heading">{currency(totalReceivedAmount)}</p>
+              <p className="text-[10px] text-accent">{reconciliationRate}% AI-Reconciled</p>
             </div>
           </div>
-          <p className="text-[11px] text-ink-muted">{reconciliationRate}% reconciliation rate</p>
-          <div className="mt-2.5 flex items-center gap-2">
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-hover">
-              <div className="h-full rounded-full bg-emerald-500" style={{ width: `${reconciliationRate}%` }} />
-            </div>
-            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">{reconciliationRate}%</span>
-          </div>
-        </Card>
+        </div>
 
-        <Card className="flex flex-col p-4">
+        <div className="flex min-w-[220px] flex-1 shrink-0 flex-col p-2 px-4 border border-border rounded-lg">
           <div className="flex gap-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent">
               <AlertCircle className="h-3.5 w-3.5" />
             </div>
             <div>
-              <p className="mt-2.5 text-xs font-medium text-ink-muted">Unmatched Payments</p>
-              <p className="mt-1 text-xl font-semibold text-amber-600 dark:text-amber-400">{unmatchedAttention.count}</p>
+              <p className="mt-2.5 text-sm font-medium text-ink-muted">Unmatched Payments</p>
+              <p className="mt-1 text-xl font-semibold text-heading">{unmatchedAttention.count}</p>
+              <p className="text-[11px] text-red-500">{currency(unmatchedAttention.amount)} requires review</p>
             </div>
           </div>
-          <p className="text-[11px] text-ink-muted">{currency(unmatchedAttention.amount)} requires review</p>
-          <Button
+          {/* <Button
             variant="outline"
             size="xs"
             onClick={() => navigate('/exceptions')}
-            className="mt-2.5 self-start border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-500/30 dark:text-amber-400 dark:hover:bg-amber-500/10"
+            className="mt-2.5 self-start border-border text-ink hover:bg-surface-hover"
           >
             Review <ArrowRight className="h-3 w-3" />
-          </Button>
-        </Card>
+          </Button> */}
+        </div>
 
-        <Card className="flex flex-col p-4">
+        <div className="flex min-w-[220px] flex-1 shrink-0 flex-col p-2 px-4 border border-border rounded-lg">
           <div className="flex gap-3">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent">
               <FileText className="h-3.5 w-3.5" />
             </div>
             <div>
-              <p className="mt-2.5 text-xs font-medium text-ink-muted">Invoice</p>
-              <p className="mt-1 text-xl font-semibold text-accent">{partialAttention.count}</p>
+              <p className="mt-2.5 text-sm font-medium text-ink-muted">Invoice</p>
+              <p className="mt-1 text-xl font-semibold">{partialAttention.count}</p>
+              <p className="text-[11px] text-red-500">{currency(partialAttention.amount)} pending allocation</p>
             </div>
           </div>
-          <p className="text-[11px] text-ink-muted">{currency(partialAttention.amount)} pending allocation</p>
-          <Button
+          {/* <Button
             variant="outline"
             size="xs"
             onClick={() => navigate('/reconciliation-hub/overview')}
             className="mt-2.5 self-start border-accent/30 text-accent hover:bg-accent/10"
           >
             Allocate <ArrowRight className="h-3 w-3" />
-          </Button>
-        </Card>
+          </Button> */}
+        </div>
       </div >
 
       <div className="grid gap-4 @4xl:grid-cols-12">
-        <Card className="flex min-w-0 flex-col p-4 @4xl:col-span-5">
-          <CardHeader icon={Landmark} title="Today's Reconciliation" />
+        <Card className="flex min-w-0 flex-col p-4 @4xl:col-span-6">
+          <CardHeader
+            icon={Landmark}
+            title={activeFilter.cardLabel}
+            aiSuggestions={['Why did reconciliation dip in this period?', 'Compare with the previous period', 'Summarize this chart']}
+          />
 
-          <div className="mt-3 flex items-center gap-4">
-            <ul className="min-w-0 flex-1 space-y-2.5 text-xs">
-              {todaysReconciliationBreakdown.map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-2">
-                  <span className="flex min-w-0 items-center gap-2 truncate text-ink">
-                    <span className={clsx('h-1.5 w-1.5 shrink-0 rounded-full', breakdownDotClasses[item.tone])} />
-                    {item.label}
-                  </span>
-                  <span className="shrink-0 font-semibold text-heading">{item.value}</span>
-                </li>
-              ))}
-            </ul>
-            <ProgressRing value={reconciliationProgress} />
+          <div className="mt-3 flex-1">
+            <ReconciliationBreakdownChart points={activeBreakdown.points} rangeLabel={activeBreakdown.rangeLabel} />
           </div>
 
-          <div className="mt-auto flex flex-col gap-2 border-t border-border pt-3 @sm:flex-row @sm:items-center @sm:justify-between">
+          <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-ink-muted">
+            <Info className="h-3.5 w-3.5" />
+            <span>Today&apos;s reconciliation generated at {todaysReconciliationGeneratedAt}</span>
+          </div>
+          {/* <div className="mt-auto flex flex-col gap-2 border-t border-border pt-3 @sm:flex-row @sm:items-center @sm:justify-between">
             <Button size="sm" onClick={() => navigate('/reconciliation-hub/overview')} className="whitespace-nowrap">
               Open Reconciliation Workspace <ArrowRight className="h-3.5 w-3.5" />
             </Button>
@@ -368,19 +408,26 @@ export function HomePage() {
             >
               <FileText className="h-3 w-3" /> View Bank Statement
             </button>
-          </div>
+          </div> */}
         </Card>
 
-        <Card className="flex min-w-0 flex-col p-4 @4xl:col-span-7">
+        <Card className="flex min-w-0 flex-col p-4 @4xl:col-span-6">
           <div className="flex items-center justify-between gap-2">
-            <CardHeader icon={AlertTriangle} title="Needs Your Attention" />
-            <button
-              type="button"
-              onClick={() => navigate('/exceptions')}
-              className="flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-medium text-accent hover:underline"
-            >
-              View All Exceptions <ArrowRight className="h-3 w-3" />
-            </button>
+            <CardHeader
+              icon={AlertTriangle}
+              title="Needs Your Attention"
+              aiSuggestions={['Prioritize these for me', 'Which items are highest risk?', 'Draft follow-up actions']}
+            />
+            <div>
+              <Button
+                type="button"
+                variant="accent-outline"
+                onClick={() => navigate('/exceptions')}
+                className="flex items-center gap-1.5 text-xs !py-1 !px-2  font-medium"
+              >
+                View All Exceptions <ArrowRight className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
 
           <ul className="mt-1.5 divide-y divide-border">
@@ -390,7 +437,7 @@ export function HomePage() {
               return (
                 <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 py-2">
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <div className={clsx('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', tone.chip)}>
+                    <div className={clsx('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted')}>
                       <Icon className="h-3.5 w-3.5" />
                     </div>
                     <div className="min-w-0">
@@ -403,7 +450,7 @@ export function HomePage() {
                     <p className="whitespace-nowrap text-[11px] text-ink-muted">{currency(item.amount)}</p>
                   </div>
                   <div className="pl-2">
-                    <Button variant="outline" size="xs" className={clsx('w-full whitespace-nowrap bg-transparent', tone.button)}>
+                    <Button variant="outline" size="xs" className={clsx('w-full whitespace-nowrap bg-transparent hover:text-accent hover:bg-accent/10 hover:border-accent', tone.button)}>
                       {item.cta}
                     </Button>
                   </div>
@@ -416,24 +463,33 @@ export function HomePage() {
 
       <div className="grid gap-4 @4xl:grid-cols-12">
         <Card className="flex min-w-0 flex-col p-4 @4xl:col-span-4">
-          <CardHeader icon={BarChart3} title="Outstanding by Ageing" />
-          <button
+          <div className="flex items-center justify-between gap-2">
+          <CardHeader
+            icon={BarChart3}
+            title="Outstanding by Ageing"
+            aiSuggestions={['Which ageing bucket grew the most?', 'Show customers in 90+ days', 'Summarize collection risk']}
+          />
+          <Button
             type="button"
+            variant='accent-outline'
             onClick={() => navigate('/reports')}
-            className="mt-1 flex items-center gap-1 self-start text-[11px] font-medium text-accent hover:underline"
+            className="flex items-center gap-1 !py-1 text-xs !px-1"
           >
             View Ageing Report <ArrowRight className="h-3 w-3" />
-          </button>
+          </Button>
+          </div>
           <div className="mt-3 flex flex-1 items-center gap-3">
             <ul className="flex-1 space-y-2.5 text-xs">
               {outstandingAgeing.map((bucket) => (
-                <li key={bucket.id} className="grid grid-cols-[64px_1fr_auto] items-center gap-x-3">
+                <li key={bucket.id} className="grid grid-cols-[1fr_auto] items-center gap-x-3">
+                  <div className='w-full'>
                   <span className="truncate text-ink-muted">{bucket.label}</span>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
                     <div
                       className={clsx('h-full rounded-full', ageingBarClasses[bucket.tone])}
                       style={{ width: `${(bucket.amount / maxAgeingAmount) * 100}%` }}
                     />
+                  </div>
                   </div>
                   <span className="text-right font-semibold text-heading">{currency(bucket.amount)}</span>
                 </li>
@@ -448,7 +504,11 @@ export function HomePage() {
         </Card>
 
         <Card className="flex min-w-0 flex-col p-4 @4xl:col-span-3">
-          <CardHeader icon={Users2} title="Outstanding by Customer Type" />
+          <CardHeader
+            icon={Users2}
+            title="Outstanding by Customer Type"
+            aiSuggestions={['Which customer type is riskiest?', 'Compare to last month', 'Suggest collection priorities']}
+          />
 
           <div className="mt-3 grid flex-1 auto-rows-min grid-cols-[1fr_auto_auto] items-center gap-x-3 gap-y-2.5">
             <span className="text-[10px] font-medium uppercase tracking-wide text-ink-muted">Type</span>
@@ -483,14 +543,19 @@ export function HomePage() {
 
         <Card className="min-w-0 p-4 @4xl:col-span-5">
           <div className="flex items-center justify-between gap-2">
-            <CardHeader icon={Activity} title="Recent Reconciliation Activity" />
-            <button
+            <CardHeader
+              icon={Activity}
+              title="Recent Reconciliation Activity"
+              aiSuggestions={["Summarize today's activity", 'Flag unusual transactions', 'Show unmatched items']}
+            />
+            <Button
               type="button"
+              variant="accent-outline"
+              className="flex items-center gap-1.5 text-xs !py-1 !px-2  font-medium"
               onClick={() => navigate('/reconciliation-hub/overview')}
-              className="flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-medium text-accent hover:underline"
             >
               View All Activity <ArrowRight className="h-3 w-3" />
-            </button>
+            </Button>
           </div>
 
           <div className="mt-3">
