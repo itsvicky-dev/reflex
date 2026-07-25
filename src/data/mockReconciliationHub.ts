@@ -113,7 +113,7 @@ export const bankFeedItems: BankFeedItem[] = [
     payee: 'GLOBAL TRADING PTE LTD',
     bankReference: 'REF: PAYNOW-772588',
     amount: 5600,
-    customer: 'Global Trading Ltd',
+    customer: 'Global Trading Pte Ltd',
     invoiceReference: 'INV-2025, INV-2024 (Partial)',
     status: 'Needs Review',
     confidence: 55,
@@ -121,6 +121,15 @@ export const bankFeedItems: BankFeedItem[] = [
       { id: 'INV-2025', date: '2026-04-02', ageDays: 94, status: 'Overdue', total: 3600, paid: 0, reason: 'Awaiting remittance' },
       { id: 'INV-2024', date: '2026-05-14', ageDays: 58, status: 'Partial', total: 2000, paid: 800 },
     ],
+  },
+  {
+    id: 'BF-0820',
+    date: '07 May 2026',
+    time: '08:20 AM',
+    payee: 'UNKNOWN PAYEE',
+    bankReference: 'REF: 20260507-0820',
+    amount: 1140,
+    status: 'Unmatched',
   },
 ]
 
@@ -161,6 +170,7 @@ export type ReconciliationBreakdownPoint = {
   label: string
   sublabel: string
   total: number
+  amount: number
   aiReconciled: number
   manualReconciled: number
   needsReview: number
@@ -175,39 +185,39 @@ export const reconciliationBreakdownByFilter: Record<ReconciliationPeriodFilter,
   today: {
     rangeLabel: '07 May 2026',
     points: [
-      { id: 'morning', label: 'Morning', sublabel: '12 AM – 12 PM', total: 140, aiReconciled: 115, manualReconciled: 12, needsReview: 13 },
-      { id: 'afternoon', label: 'Afternoon', sublabel: '12 PM – 5 PM', total: 168, aiReconciled: 138, manualReconciled: 18, needsReview: 12 },
-      { id: 'evening', label: 'Evening', sublabel: '5 PM – 12 AM', total: 96, aiReconciled: 74, manualReconciled: 9, needsReview: 13 },
+      { id: 'morning', label: 'Morning', sublabel: '12 AM – 12 PM', total: 140, amount: 82600, aiReconciled: 115, manualReconciled: 12, needsReview: 13 },
+      { id: 'afternoon', label: 'Afternoon', sublabel: '12 PM – 5 PM', total: 168, amount: 101300, aiReconciled: 138, manualReconciled: 18, needsReview: 12 },
+      { id: 'evening', label: 'Evening', sublabel: '5 PM – 12 AM', total: 96, amount: 54200, aiReconciled: 74, manualReconciled: 9, needsReview: 13 },
     ],
   },
   week: {
     rangeLabel: 'May 04 – May 10',
     points: [
-      { id: 'mon', label: 'Mon', sublabel: 'May 04', total: 152, aiReconciled: 121, manualReconciled: 16, needsReview: 15 },
-      { id: 'tue', label: 'Tue', sublabel: 'May 05', total: 134, aiReconciled: 108, manualReconciled: 14, needsReview: 12 },
-      { id: 'wed', label: 'Wed', sublabel: 'May 06', total: 146, aiReconciled: 119, manualReconciled: 15, needsReview: 12 },
-      { id: 'thu', label: 'Thu', sublabel: 'May 07', total: 161, aiReconciled: 132, manualReconciled: 17, needsReview: 12 },
-      { id: 'fri', label: 'Fri', sublabel: 'May 08', total: 158, aiReconciled: 129, manualReconciled: 16, needsReview: 13 },
-      { id: 'sat', label: 'Sat', sublabel: 'May 09', total: 89, aiReconciled: 70, manualReconciled: 9, needsReview: 10 },
-      { id: 'sun', label: 'Sun', sublabel: 'May 10', total: 64, aiReconciled: 49, manualReconciled: 7, needsReview: 8 },
+      { id: 'mon', label: 'Mon', sublabel: 'May 04', total: 152, amount: 91200, aiReconciled: 121, manualReconciled: 16, needsReview: 15 },
+      { id: 'tue', label: 'Tue', sublabel: 'May 05', total: 134, amount: 78300, aiReconciled: 108, manualReconciled: 14, needsReview: 12 },
+      { id: 'wed', label: 'Wed', sublabel: 'May 06', total: 146, amount: 87950, aiReconciled: 119, manualReconciled: 15, needsReview: 12 },
+      { id: 'thu', label: 'Thu', sublabel: 'May 07', total: 161, amount: 96500, aiReconciled: 132, manualReconciled: 17, needsReview: 12 },
+      { id: 'fri', label: 'Fri', sublabel: 'May 08', total: 158, amount: 94800, aiReconciled: 129, manualReconciled: 16, needsReview: 13 },
+      { id: 'sat', label: 'Sat', sublabel: 'May 09', total: 89, amount: 51200, aiReconciled: 70, manualReconciled: 9, needsReview: 10 },
+      { id: 'sun', label: 'Sun', sublabel: 'May 10', total: 64, amount: 36400, aiReconciled: 49, manualReconciled: 7, needsReview: 8 },
     ],
   },
   month: {
     rangeLabel: 'Apr 20 – May 18',
     points: [
-      { id: 'week-1', label: 'Week 1', sublabel: 'Apr 20 – Apr 26', total: 812, aiReconciled: 654, manualReconciled: 88, needsReview: 70 },
-      { id: 'week-2', label: 'Week 2', sublabel: 'Apr 27 – May 03', total: 764, aiReconciled: 612, manualReconciled: 81, needsReview: 71 },
-      { id: 'week-3', label: 'Week 3', sublabel: 'May 04 – May 10', total: 903, aiReconciled: 731, manualReconciled: 94, needsReview: 78 },
-      { id: 'week-4', label: 'Week 4', sublabel: 'May 11 – May 18', total: 856, aiReconciled: 692, manualReconciled: 89, needsReview: 75 },
+      { id: 'week-1', label: 'Week 1', sublabel: 'Apr 20 – Apr 26', total: 812, amount: 486400, aiReconciled: 654, manualReconciled: 88, needsReview: 70 },
+      { id: 'week-2', label: 'Week 2', sublabel: 'Apr 27 – May 03', total: 764, amount: 452100, aiReconciled: 612, manualReconciled: 81, needsReview: 71 },
+      { id: 'week-3', label: 'Week 3', sublabel: 'May 04 – May 10', total: 903, amount: 541200, aiReconciled: 731, manualReconciled: 94, needsReview: 78 },
+      { id: 'week-4', label: 'Week 4', sublabel: 'May 11 – May 18', total: 856, amount: 512300, aiReconciled: 692, manualReconciled: 89, needsReview: 75 },
     ],
   },
   year: {
     rangeLabel: '2026',
     points: [
-      { id: 'q1', label: 'Q1', sublabel: 'Jan – Mar', total: 9840, aiReconciled: 7910, manualReconciled: 1030, needsReview: 900 },
-      { id: 'q2', label: 'Q2', sublabel: 'Apr – Jun', total: 10620, aiReconciled: 8540, manualReconciled: 1120, needsReview: 960 },
-      { id: 'q3', label: 'Q3', sublabel: 'Jul – Sep', total: 11380, aiReconciled: 9180, manualReconciled: 1190, needsReview: 1010 },
-      { id: 'q4', label: 'Q4', sublabel: 'Oct – Dec', total: 10940, aiReconciled: 8790, manualReconciled: 1160, needsReview: 990 },
+      { id: 'q1', label: 'Q1', sublabel: 'Jan – Mar', total: 9840, amount: 5860200, aiReconciled: 7910, manualReconciled: 1030, needsReview: 900 },
+      { id: 'q2', label: 'Q2', sublabel: 'Apr – Jun', total: 10620, amount: 6320500, aiReconciled: 8540, manualReconciled: 1120, needsReview: 960 },
+      { id: 'q3', label: 'Q3', sublabel: 'Jul – Sep', total: 11380, amount: 6790400, aiReconciled: 9180, manualReconciled: 1190, needsReview: 1010 },
+      { id: 'q4', label: 'Q4', sublabel: 'Oct – Dec', total: 10940, amount: 6512300, aiReconciled: 8790, manualReconciled: 1160, needsReview: 990 },
     ],
   },
 }

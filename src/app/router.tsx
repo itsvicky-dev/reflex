@@ -4,6 +4,7 @@ import { AiChatProvider } from '../context/AiChatContext'
 import { LayoutProvider } from '../context/LayoutContext'
 import { AllContentPage } from '../pages/AllContentPage'
 import { ControlTowerPage } from '../pages/ControlTowerPage'
+import { CustomerOverviewPage } from '../pages/CustomerOverviewPage'
 import { CustomerPaymentsPage } from '../pages/CustomerPaymentsPage'
 import { CustomersPage } from '../pages/CustomersPage'
 import { ErrorPage } from '../pages/ErrorPage'
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
       { path: 'reconciliation', element: <ReconciliationPage /> },
       { path: 'reconciliation-hub/overview', element: <ReconciliationHubOverviewPage /> },
       { path: 'reconciliation-hub/workbench', element: <WorkbenchPage /> },
+      { path: 'customer-intelligence/overview', element: <CustomerOverviewPage /> },
       { path: 'customer-intelligence/customers', element: <CustomersPage /> },
       { path: 'customer-intelligence/payments', element: <CustomerPaymentsPage /> },
       { path: 'transactions', element: <TransactionsPage /> },

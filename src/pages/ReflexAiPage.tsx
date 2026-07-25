@@ -34,7 +34,7 @@ import { ChartCard } from '../components/ai/charts/ChartCard'
 import { WowEventChart } from '../components/ai/charts/WowEventChart'
 import { RiskMatrixChart } from '../components/ai/charts/RiskMatrixChart'
 
-const DEFAULT_ID = 'summarize-trends'
+const DEFAULT_ID = ''
 
 const SUGGESTIONS = [
   { label: 'Predict cash flow for the next 30 days', icon: WalletCards },
@@ -50,9 +50,13 @@ export function ReflexAiPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [activeId, setActiveId] = useState<string>(DEFAULT_ID)
   const [message, setMessage] = useState('')
+  // What's actually typed, kept separate from the hover preview so we can
+  // revert cleanly when the mouse leaves a suggestion chip.
+  const [hoveredSuggestion, setHoveredSuggestion] = useState<string | null>(null)
   const [working, setWorking] = useState(true)
 
   const activeChat = reflexAiChats[activeId]
+  const isEmptyState = !activeChat
 
   const [contextTags, setContextTags] = useState([
     { id: 'home', label: 'Home', icon: HomeIcon },
@@ -79,6 +83,93 @@ export function ReflexAiPage() {
   function startNewChat() {
     setActiveId('')
     setWorking(false)
+    setMessage('')
+    setHoveredSuggestion(null)
+  }
+
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    const text = message.trim()
+    if (!text) return
+    if (isEmptyState) setActiveId(DEFAULT_ID)
+    setMessage('')
+    setHoveredSuggestion(null)
+  }
+
+  // Value shown in the textarea: a hovered suggestion previews on top of
+  // whatever the user has actually typed, without overwriting it.
+  const displayValue = hoveredSuggestion ?? message
+
+  function Composer() {
+    return (
+      <div className="rounded-3xl border border-border bg-surface p-3 transition focus-within:border-accent">
+        {contextTags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 pb-2">
+            {contextTags.map((tag) => (
+              <span
+                key={tag.id}
+                className="inline-flex items-center gap-1 rounded-md bg-[#F4F5F6] py-1 pl-2 pr-1 text-xs text-black"
+              >
+                <tag.icon className="h-3 w-3 text-ink" />
+                {tag.label}
+                <button
+                  type="button"
+                  aria-label={`Remove ${tag.label}`}
+                  onClick={() => setContextTags((tags) => tags.filter((t) => t.id !== tag.id))}
+                  className="flex h-3.5 w-3.5 items-center justify-center rounded-full text-ink-muted transition hover:bg-border hover:text-ink"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={displayValue}
+            onChange={(event) => {
+              // Typing always edits the real message; a preview in progress
+              // is cleared so it doesn't fight with manual input.
+              setHoveredSuggestion(null)
+              setMessage(event.target.value)
+            }}
+            placeholder={isEmptyState ? 'Ask Reflex anything...' : 'Ask a follow up...'}
+            autoFocus={isEmptyState}
+            className={clsx(
+              'w-full bg-transparent px-1 py-1 text-sm focus:outline-none',
+              hoveredSuggestion ? 'text-ink-muted' : 'text-ink',
+              'placeholder:text-ink/60',
+            )}
+          />
+          <div className="mt-1.5 flex items-center justify-between px-1">
+            <button
+              type="button"
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-muted transition hover:bg-surface-hover hover:text-ink"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-1">
+              {message.trim() ? (
+                <button
+                  type="submit"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-accent-content transition"
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-muted transition hover:bg-surface-hover hover:text-ink"
+                >
+                  <Mic className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
+      </div>
+    )
   }
 
   return (
@@ -115,27 +206,7 @@ export function ReflexAiPage() {
               <SquarePen className="h-4 w-4" />
               New Chat
             </button>
-            {/* <button
-              type="button"
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-ink transition hover:bg-surface-hover"
-            >
-              <Users className="h-4 w-4" />
-              Custom Agents
-            </button> */}
           </div>
-
-          {/* <div className="mt-1 px-2">
-            <p className="px-2.5 pb-1 pt-3 text-[11px] font-medium text-ink-muted">My Recent Agents</p>
-            <button
-              type="button"
-              className="flex w-full flex-col items-center gap-1.5 rounded-lg py-3 text-ink-muted transition hover:bg-surface-hover"
-            >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-dashed border-border text-accent">
-                <Plus className="h-4 w-4" />
-              </span>
-              <span className="text-[11px]">New agent</span>
-            </button>
-          </div> */}
 
           <nav className="scrollbar-hide flex-1 overflow-y-auto px-2 pb-3">
             {reflexAiHistory.map((group) => (
@@ -206,12 +277,56 @@ export function ReflexAiPage() {
           </div>
         </header>
 
-        <div className="scrollbar-hide flex-1 overflow-y-auto px-6 py-8">
-          <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
-            {activeChat ? (
-              <>
+        {isEmptyState ? (
+          /* ---------- Claude-style new chat: everything centered vertically ---------- */
+          <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-10">
+            <div className="mx-auto flex w-full max-w-[700px] flex-col items-center gap-6">
+              <div className="flex flex-col items-center gap-3 text-center">
+                <div className="relative flex h-14 w-14 items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-accent/20 blur-xl" />
+                  <Sparkles className="relative h-7 w-7 text-accent" />
+                </div>
+                <h2 className="text-lg font-semibold text-heading">How can Reflex help you today?</h2>
+                <p className="max-w-sm text-xs text-ink-muted">
+                  Ask questions, uncover insights, predict outcomes, and take action across your finance operations.
+                </p>
+              </div>
+
+              <div className="w-full">
+                <Composer />
+              </div>
+
+              {/* Suggestions sit below the composer; hovering one previews its
+                  prompt inside the textarea above without committing it. */}
+              <div className="grid w-full grid-cols-1 gap-2 max-w-[350px]">
+                {SUGGESTIONS.map((suggestion) => (
+                  <button
+                    key={suggestion.label}
+                    type="button"
+                    onMouseEnter={() => setHoveredSuggestion(suggestion.label)}
+                    onMouseLeave={() => setHoveredSuggestion(null)}
+                    onFocus={() => setHoveredSuggestion(suggestion.label)}
+                    onBlur={() => setHoveredSuggestion(null)}
+                    onClick={() => {
+                      setMessage(suggestion.label)
+                      setHoveredSuggestion(null)
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl border border-border px-3 py-2.5 text-left text-sm text-ink transition hover:border-accent hover:bg-accent/5 hover:text-accent"
+                  >
+                    <suggestion.icon className="h-6 w-6 shrink-0" />
+                    <span className="truncate">{suggestion.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* ---------- Active chat: transcript scrolls, composer docked at bottom ---------- */
+          <>
+            <div className="scrollbar-hide flex-1 overflow-y-auto px-6 py-8">
+              <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
                 <div className="flex flex-col items-end gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-hover px-2.5 py-1 text-xs text-ink-muted">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-hover px-2.5 py-1 text-xs text-ink-muted whitespace-nowrap">
                     <LayoutGrid className="h-3.5 w-3.5 text-pink-500" />
                     {activeChat.contextLabel}
                   </span>
@@ -281,113 +396,27 @@ export function ReflexAiPage() {
                     </>
                   )}
                 </div>
-              </>
-            ) : (
-              <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center">
-                <div className="relative flex h-14 w-14 items-center justify-center">
-                  <div className="absolute inset-0 rounded-full bg-accent/20 blur-xl" />
-                  <Sparkles className="relative h-7 w-7 text-accent" />
-                </div>
-                <h2 className="text-lg font-semibold text-heading">How can Reflex help you today?</h2>
-                <p className="max-w-sm text-xs text-ink-muted">
-                  Ask questions, uncover insights, predict outcomes, and take action across your finance operations.
-                </p>
-                <div className="mt-3 flex max-w-md flex-wrap items-center justify-center gap-2">
-                  {SUGGESTIONS.map((suggestion) => (
-                    <button
-                      key={suggestion.label}
-                      type="button"
-                      onClick={() => setMessage(suggestion.label)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-ink transition hover:border-accent hover:bg-accent/5 hover:text-accent"
-                    >
-                      <suggestion.icon className="h-3.5 w-3.5" />
-                      {suggestion.label}
-                    </button>
-                  ))}
-                </div>
               </div>
-            )}
-          </div>
-        </div>
-
-        <div className="mx-auto w-full max-w-[760px] px-6 pb-6">
-          {working && activeChat && (
-            <div className="mb-2 flex items-center gap-2 rounded-t-xl bg-accent/10 px-3 py-2 text-xs font-medium text-accent">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Working... {activeChat.response.toolCallLabel}
             </div>
-          )}
-          <div className="rounded-3xl border border-border bg-surface p-3 transition focus-within:border-accent">
-            {contextTags.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 pb-2">
-                {contextTags.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="inline-flex items-center gap-1 rounded-md bg-[#F4F5F6] py-1 pl-2 pr-1 text-xs text-black"
-                  >
-                    <tag.icon className="h-3 w-3 text-ink" />
-                    {tag.label}
-                    <button
-                      type="button"
-                      aria-label={`Remove ${tag.label}`}
-                      onClick={() => setContextTags((tags) => tags.filter((t) => t.id !== tag.id))}
-                      className="flex h-3.5 w-3.5 items-center justify-center rounded-full text-ink-muted transition hover:bg-border hover:text-ink"
-                    >
-                      <X className="h-2.5 w-2.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-            <form
-              onSubmit={(event) => {
-                event.preventDefault()
-                setMessage('')
-              }}
-            >
-              <input
-                type="text"
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                placeholder="Ask a follow up..."
-                className="w-full bg-transparent px-1 py-1 text-sm text-ink placeholder:text-ink/60 focus:outline-none"
-              />
-              <div className="mt-1.5 flex items-center justify-between px-1">
-                <button
-                  type="button"
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-muted transition hover:bg-surface-hover hover:text-ink"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-                <div className="flex items-center gap-1">
-                  {message.trim() ? (
-                    <button
-                      type="submit"
-                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-accent-content transition"
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-muted transition hover:bg-surface-hover hover:text-ink"
-                    >
-                      <Mic className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </form>
-          </div>
 
-          <p className="mt-2 flex items-center justify-between text-[11px] text-[#1E2024]">
-            <span>AI can make mistakes; always verify.</span>
-            <span className="inline-flex cursor-pointer items-center gap-1 text-[#1E2024] transition hover:text-ink">
-              Send feedback
-              <MessageSquare className="h-3 w-3" />
-            </span>
-          </p>
-        </div>
+            <div className="mx-auto w-full max-w-[760px] px-6 pb-6">
+              {working && (
+                <div className="mb-2 flex items-center gap-2 rounded-t-xl bg-accent/10 px-3 py-2 text-xs font-medium text-accent">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Working... {activeChat.response.toolCallLabel}
+                </div>
+              )}
+              <Composer />
+              <p className="mt-2 flex items-center justify-between text-[11px] text-[#1E2024]">
+                <span>AI can make mistakes; always verify.</span>
+                <span className="inline-flex cursor-pointer items-center gap-1 text-[#1E2024] transition hover:text-ink">
+                  Send feedback
+                  <MessageSquare className="h-3 w-3" />
+                </span>
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

@@ -26,13 +26,29 @@ const legendItems = [
 
 const formatCount = (value: number) => new Intl.NumberFormat('en-US').format(value)
 
-function TooltipRow({ swatchClassName, label, value }: { swatchClassName: string; label: string; value: number }) {
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value)
+
+function TooltipRow({
+  swatchClassName,
+  label,
+  value,
+  amount,
+}: {
+  swatchClassName: string
+  label: string
+  value: number
+  amount: number
+}) {
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="flex items-center gap-2 text-xs text-ink">
         <span className={clsx('h-2.5 w-2.5 shrink-0 rounded-sm', swatchClassName)} /> {label}
       </span>
-      <span className="shrink-0 text-xs font-semibold text-heading">{formatCount(value)}</span>
+      <span className="shrink-0 text-right text-xs font-semibold text-heading">
+        {formatCount(value)}
+        <span className="ml-1 font-normal text-ink-muted">({formatCurrency(amount)})</span>
+      </span>
     </div>
   )
 }
@@ -107,17 +123,32 @@ export function ReconciliationBreakdownChart({ points, rangeLabel }: Reconciliat
       {hovered &&
         createPortal(
           <div
-            className="pointer-events-none fixed z-50 w-52 -translate-x-1/2 rounded-xl border border-border bg-surface p-3.5 shadow-2xl"
+            className="pointer-events-none fixed z-50 w-64 -translate-x-1/2 rounded-xl border border-border bg-surface p-3.5 shadow-2xl"
             style={{ left: hovered.left, bottom: hovered.bottom }}
           >
             <p className="truncate text-xs font-semibold text-heading">{hovered.point.label}</p>
             <p className="truncate text-[11px] text-ink-muted">{hovered.point.sublabel}</p>
 
             <div className="mt-2.5 space-y-2">
-              <TooltipRow swatchClassName="bg-border" label="Total" value={hovered.point.total} />
-              <TooltipRow swatchClassName="bg-accent" label="AI Reconciled" value={hovered.point.aiReconciled} />
-              <TooltipRow swatchClassName="bg-blue-500" label="Manual Reconciled" value={hovered.point.manualReconciled} />
-              <TooltipRow swatchClassName="bg-rose-500" label="Needs Review" value={hovered.point.needsReview} />
+              <TooltipRow swatchClassName="bg-border" label="Total" value={hovered.point.total} amount={hovered.point.amount} />
+              <TooltipRow
+                swatchClassName="bg-accent"
+                label="AI Reconciled"
+                value={hovered.point.aiReconciled}
+                amount={(hovered.point.aiReconciled / hovered.point.total) * hovered.point.amount}
+              />
+              <TooltipRow
+                swatchClassName="bg-blue-500"
+                label="Manual Reconciled"
+                value={hovered.point.manualReconciled}
+                amount={(hovered.point.manualReconciled / hovered.point.total) * hovered.point.amount}
+              />
+              <TooltipRow
+                swatchClassName="bg-rose-500"
+                label="Needs Review"
+                value={hovered.point.needsReview}
+                amount={(hovered.point.needsReview / hovered.point.total) * hovered.point.amount}
+              />
             </div>
           </div>,
           document.body,

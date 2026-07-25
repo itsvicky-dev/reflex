@@ -2,11 +2,13 @@ import { clsx } from 'clsx'
 import {
   AlertTriangle,
   ArrowRight,
+  CalendarDays,
+  ChevronDown,
   ChevronLeft,
   Download,
   Eye,
   FileEdit,
-  FileText,
+  Filter,
   Info,
   Landmark,
   Mail,
@@ -14,11 +16,11 @@ import {
   MoreVertical,
   RefreshCw,
   Search,
-  Table2,
   UserX,
-  Wallet,
   type LucideIcon,
 } from 'lucide-react'
+import { AskAiPopover } from '../components/ui/AskAiPopover'
+import { ReconciliationBreakdownChart } from '../components/ui/ReconciliationBreakdownChart'
 import { useMemo, useState } from 'react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -30,6 +32,7 @@ import { useLayout } from '../context/LayoutContext'
 import {
   attentionItems,
   bankFeedItems,
+  reconciliationBreakdownByFilter,
   reconciliationProgress,
   reconciliationStats,
   todaysReconciliationBreakdown,
@@ -119,6 +122,21 @@ function OpenInvoicesTable({ invoices }: { invoices: OpenInvoice[] }) {
           })}
         </tbody>
       </table>
+    </div>
+  )
+}
+
+const confidenceBarColor = (v: number) =>
+  v >= 90 ? 'bg-emerald-500' : v >= 65 ? 'bg-amber-400' : 'bg-orange-400'
+
+function ConfidenceCell({ value }: { value?: number }) {
+  if (value == null) return <span className="text-ink-muted">—</span>
+  return (
+    <div className="flex min-w-[110px] items-center gap-2">
+      <span className="w-8 shrink-0 text-xs font-semibold text-heading">{value}%</span>
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-hover">
+        <div className={clsx('h-full rounded-full', confidenceBarColor(value))} style={{ width: `${value}%` }} />
+      </div>
     </div>
   )
 }
@@ -266,32 +284,37 @@ export function ReconciliationHubOverviewPage() {
   const fullColumns: TableColumn<BankFeedItem>[] = [
     {
       key: 'date',
-      header: 'Date',
+      header: <span className="flex items-center gap-1">Transaction Date <ChevronDown className="h-3 w-3" /></span>,
       render: (item) => (
         <>
-          <p className="whitespace-nowrap font-medium text-heading">{item.date}</p>
+          <p className="whitespace-nowrap font-semibold text-heading">{item.date}</p>
           <p className="whitespace-nowrap text-xs text-ink-muted">{item.time}</p>
         </>
       ),
     },
     {
       key: 'payee',
-      header: 'Payee / Narration',
+      header: <><p>Payee / Narration</p><p className="text-[11px] font-normal text-ink-muted">Bank Reference</p></>,
       render: (item) => (
         <>
-          <p className="whitespace-nowrap font-medium text-heading">{item.payee}</p>
+          <p className="whitespace-nowrap font-semibold text-heading">{item.payee}</p>
           <p className="whitespace-nowrap text-xs text-ink-muted">{item.bankReference}</p>
         </>
       ),
     },
     {
+      key: 'amount',
+      header: 'Amount',
+      render: (item) => <span className="font-semibold text-heading">{currency(item.amount)}</span>,
+    },
+    {
       key: 'customer',
-      header: 'Customer',
+      header: <><p>Customer (Mapped)</p><p className="text-[11px] font-normal text-ink-muted">Invoice Reference</p></>,
       render: (item) =>
         item.customer ? (
           <>
-            <p className="whitespace-nowrap font-medium text-heading">{item.customer}</p>
-            <p className="whitespace-nowrap text-xs text-ink-muted">{item.invoiceReference}</p>
+            <p className="whitespace-nowrap font-semibold text-heading">{item.customer}</p>
+            <p className="whitespace-nowrap text-xs text-ink-muted">{item.invoiceReference ?? '—'}</p>
           </>
         ) : (
           <span className="text-ink-muted">—</span>
@@ -300,29 +323,23 @@ export function ReconciliationHubOverviewPage() {
     {
       key: 'status',
       header: 'Status',
-      render: (item) => <Badge>{item.status}</Badge>,
+      render: (item) => <Badge tone={bankFeedTone[item.status]}>{item.status}</Badge>,
     },
     {
       key: 'confidence',
-      header: 'Confidence',
-      render: (item) => (item.confidence ? <span className="font-medium text-heading">{item.confidence}%</span> : <span className="text-ink-muted">—</span>),
-    },
-    {
-      key: 'amount',
-      header: 'Amount',
-      align: 'right',
-      render: (item) => <span className="font-medium text-heading">{currency(item.amount)}</span>,
+      header: 'Matching Confidence',
+      render: (item) => <ConfidenceCell value={item.confidence} />,
     },
     {
       key: 'actions',
-      header: '',
+      header: 'Actions',
       align: 'right',
       render: () => (
         <div className="flex items-center justify-end gap-1">
-          <IconButton aria-label="View transaction" className="h-8 w-8">
+          <IconButton aria-label="View transaction" className="h-7 w-7">
             <Eye className="h-3.5 w-3.5" />
           </IconButton>
-          <IconButton aria-label="More actions" className="h-8 w-8">
+          <IconButton aria-label="More actions" className="h-7 w-7">
             <MoreVertical className="h-3.5 w-3.5" />
           </IconButton>
         </div>
@@ -351,6 +368,12 @@ export function ReconciliationHubOverviewPage() {
     </div>
   )
 
+  const [page, setPage] = useState(1)
+  const rowsPerPage = 20
+  const totalRows = 146
+  const totalPages = Math.ceil(totalRows / rowsPerPage)
+  const pageRows = rows.slice((page - 1) * rowsPerPage, page * rowsPerPage)
+
   if (expanded) {
     return (
       <section className="space-y-4">
@@ -362,19 +385,34 @@ export function ReconciliationHubOverviewPage() {
         </div>
 
         <Card className="min-w-0 p-4">
-          <div className="mb-4 flex justify-between gap-3 border-b border-border pb-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
             {tabBar}
-            {searchBox}
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-ink hover:bg-surface-hover">
+                <CalendarDays className="h-3.5 w-3.5 text-ink-muted" /> Date: 07 May 2026
+              </button>
+              <button type="button" className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-ink hover:bg-surface-hover">
+                Customer Type <ChevronDown className="h-3 w-3 text-ink-muted" />
+              </button>
+              <button type="button" className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-ink hover:bg-surface-hover">
+                Status <ChevronDown className="h-3 w-3 text-ink-muted" />
+              </button>
+              <button type="button" className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-ink hover:bg-surface-hover">
+                <Filter className="h-3.5 w-3.5 text-ink-muted" /> Filters
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-content">2</span>
+              </button>
+              {searchBox}
+            </div>
           </div>
+
           <Table
             columns={fullColumns}
-            data={rows}
+            data={pageRows}
             rowKey={(item) => item.id}
             emptyMessage="No transactions match this filter."
-            // selectable
+            selectable
             expandable
             expandColumnKey="date"
-            // highlightColumnKey="amount"
             renderExpanded={(item) =>
               item.openInvoices?.length ? (
                 <OpenInvoicesTable invoices={item.openInvoices} />
@@ -383,6 +421,58 @@ export function ReconciliationHubOverviewPage() {
               )
             }
           />
+
+          <div className="mt-4 flex items-center justify-between border-t border-border pt-4 text-xs text-ink-muted">
+            <span>Showing {(page - 1) * rowsPerPage + 1} to {Math.min(page * rowsPerPage, totalRows)} of {totalRows} transactions</span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="flex h-7 w-7 items-center justify-center rounded border border-border text-ink disabled:opacity-40 hover:bg-surface-hover"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+              {[1, 2, 3, 4, 5].map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPage(p)}
+                  className={clsx(
+                    'flex h-7 w-7 items-center justify-center rounded border text-xs font-medium',
+                    page === p ? 'border-accent bg-accent text-accent-content' : 'border-border text-ink hover:bg-surface-hover',
+                  )}
+                >
+                  {p}
+                </button>
+              ))}
+              <span className="px-1">...</span>
+              <button
+                type="button"
+                onClick={() => setPage(totalPages)}
+                className={clsx(
+                  'flex h-7 w-7 items-center justify-center rounded border text-xs font-medium',
+                  page === totalPages ? 'border-accent bg-accent text-accent-content' : 'border-border text-ink hover:bg-surface-hover',
+                )}
+              >
+                {totalPages}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="flex h-7 w-7 items-center justify-center rounded border border-border text-ink disabled:opacity-40 hover:bg-surface-hover"
+              >
+                <ChevronDown className="h-3.5 w-3.5 -rotate-90" />
+              </button>
+              <span className="ml-3 flex items-center gap-1.5">
+                Rows per page
+                <span className="flex items-center gap-0.5 rounded border border-border px-2 py-0.5">
+                  {rowsPerPage} <ChevronDown className="h-3 w-3" />
+                </span>
+              </span>
+            </div>
+          </div>
         </Card>
       </section>
     )
@@ -418,7 +508,7 @@ export function ReconciliationHubOverviewPage() {
                 ' rounded-lg min-w-[200px] flex-1 basis-[200px] max-h-[70px] cursor-pointer border py-1.5 px-4 transition-colors border-border hover:border-accent/40 hover:bg-accent/5',
               )}
             >
-              <span className={clsx('truncate text-sm text-[#5a5e68]')}>{stat.label}</span>
+              <span className={clsx('truncate text-xs text-[#5a5e68]')}>{stat.label}</span>
               <div className="flex items-center gap-2">
                 <p className={clsx('text-[24px] font-[400] text-black')}>{stat.value}</p>
                 {trend ? (
@@ -444,34 +534,20 @@ export function ReconciliationHubOverviewPage() {
 
       {/* Analytics section */}
       <div className="grid gap-4 @4xl:grid-cols-2">
-        <Card className="flex min-w-0 flex-col p-5">
-          <div className="flex justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-ink-muted">
-                <Landmark className="h-4 w-4" />
-              </div>
-              <h3 className="text-base font-semibold text-heading">Today&apos;s Reconciliation</h3>
-            </div>
-            <div>
-            <button className="text-xs border border-transparent flex items-center gap-2 whitespace-nowrap rounded-lg p-1 text-accent bg-transparent hover:border-accent hover:bg-accent/10">
-              Open Workspace
-            </button>
-            </div>
+        <Card className="flex min-w-0 flex-col p-4">
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-sm font-semibold text-heading">Today&apos;s Reconciliation</h3>
+            <AskAiPopover contextLabel="Today's Reconciliation" suggestions={['Why did reconciliation dip in this period?', 'Compare with the previous period', 'Summarize this chart']} />
           </div>
 
-          <div className="mt-4 flex items-center gap-6">
-            <ul className="min-w-0 flex-1 space-y-3 text-sm">
-              {todaysReconciliationBreakdown.map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-2 border-b border-border pb-2 last:border-0 last:pb-0">
-                  <span className="truncate text-ink">{item.label}</span>
-                  <span className="shrink-0 font-semibold text-heading">{item.value}</span>
-                </li>
-              ))}
-            </ul>
-            <ProgressRing value={reconciliationProgress} />
+          <div className="mt-3 flex-1">
+            <ReconciliationBreakdownChart
+              points={reconciliationBreakdownByFilter['today'].points}
+              rangeLabel={reconciliationBreakdownByFilter['today'].rangeLabel}
+            />
           </div>
 
-          <div className="mt-4 flex flex-1 items-center gap-1.5 border-t border-border pt-3 text-xs text-ink-muted">
+          <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-ink-muted">
             <Info className="h-3.5 w-3.5" />
             <span>Today&apos;s reconciliation generated at {todaysReconciliationGeneratedAt}</span>
           </div>

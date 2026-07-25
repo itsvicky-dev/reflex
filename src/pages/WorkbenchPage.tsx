@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { Check, Download, Flag, Info, Plus, Search, Zap } from 'lucide-react'
+import { Check, Download, Flag, Info, Plus, Search, SlidersHorizontal, X, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -14,6 +14,29 @@ import {
 } from '../data/mockWorkbench'
 
 type AllocationMode = 'ai' | 'manual'
+
+type Filters = {
+  matchType: Set<string>
+  aiConfidence: number | null
+}
+
+const MATCH_TYPE_OPTIONS = [
+  'Matching Multiple Invoices',
+  'Partial Payment Matches',
+  'Advance Payments',
+  'Short Payment',
+  'Over Payment',
+  'Duplicate Payment Detection',
+  'Manual Review Suggested',
+] as const
+
+function emptyFilters(): Filters {
+  return { matchType: new Set(), aiConfidence: null }
+}
+
+function filtersActive(f: Filters) {
+  return f.matchType.size > 0 || f.aiConfidence !== null
+}
 
 const sgd = (value: number) =>
   `SGD ${value.toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -43,6 +66,267 @@ function fifoSelection(payment: IncomingPayment): Set<string> {
   return ids
 }
 
+function FilterDrawer({
+  open,
+  onClose,
+  filters,
+  onApply,
+}: {
+  open: boolean
+  onClose: () => void
+  filters: Filters
+  onApply: (f: Filters) => void
+}) {
+  const [draft, setDraft] = useState<Filters>({
+    matchType: new Set(filters.matchType),
+    aiConfidence: filters.aiConfidence,
+  })
+
+  function toggleMatchType(value: string) {
+    setDraft((prev) => {
+      const next = new Set(prev.matchType)
+      next.has(value) ? next.delete(value) : next.add(value)
+      return { ...prev, matchType: next }
+    })
+  }
+
+  if (!open) return null
+
+  const activeCount = draft.matchType.size + (draft.aiConfidence !== null ? 1 : 0)
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed right-0 top-0 z-50 flex h-full w-[340px] flex-col bg-white shadow-2xl dark:bg-surface">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5">
+          <div>
+            <p className="text-sm font-semibold text-white">Filter Payments</p>
+            <p className="mt-0.5 text-xs text-zinc-400">
+              {activeCount > 0 ? `${activeCount} filter${activeCount > 1 ? 's' : ''} active` : 'No filters applied'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 transition hover:text-black"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {/* Match Type section */}
+          <div className="px-6 py-5">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-widest text-zinc-950 dark:text-white">Match Type</p>
+              {draft.matchType.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setDraft((prev) => ({ ...prev, matchType: new Set() }))}
+                  className="text-xs font-medium text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="space-y-1">
+              {MATCH_TYPE_OPTIONS.map((opt) => {
+                const checked = draft.matchType.has(opt)
+                return (
+                  <label
+                    key={opt}
+                    className={clsx(
+                      'flex cursor-pointer items-center border text-zinc-800 gap-3 rounded-lg px-3 py-2.5 transition',
+                      checked
+                        ? 'border-zinc-950'
+                        : 'border-transparent hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800/50',
+                    )}
+                  >
+                    <span
+                      className={clsx(
+                        'flex h-4 w-4 shrink-0 items-center justify-center rounded border transition border-zinc-300 bg-white dark:border-zinc-600 dark:bg-transparent',
+                      )}
+                    >
+                      {checked && (
+                        <svg className="h-2.5 w-2.5 text-zinc-950" viewBox="0 0 10 10" fill="none">
+                          <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </span>
+                    <input type="checkbox" checked={checked} onChange={() => toggleMatchType(opt)} className="sr-only" />
+                    <span className="text-sm font-medium">{opt}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="mx-6 border-t border-zinc-100 dark:border-zinc-800" />
+
+          {/* AI Confidence section */}
+          <div className="px-6 py-5">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-widest text-zinc-950 dark:text-white">AI Confidence</p>
+              {draft.aiConfidence !== null && (
+                <button
+                  type="button"
+                  onClick={() => setDraft((prev) => ({ ...prev, aiConfidence: null }))}
+                  className="text-xs font-medium text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">Show only payments where AI confidence is at or above this threshold.</p>
+            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 focus-within:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-800/50 dark:focus-within:border-white">
+              <span className="text-sm font-semibold text-zinc-950 dark:text-white">≥</span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                placeholder="80"
+                value={draft.aiConfidence ?? ''}
+                onChange={(e) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    aiConfidence: e.target.value === '' ? null : Math.min(100, Math.max(0, Number(e.target.value))),
+                  }))
+                }
+                className="w-full bg-transparent text-sm font-semibold text-zinc-950 placeholder:font-normal placeholder:text-zinc-400 focus:outline-none dark:text-white"
+              />
+              <span className="text-sm font-semibold text-zinc-950 dark:text-white">%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-zinc-100 px-6 py-4 dark:border-zinc-800">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                const empty = emptyFilters()
+                setDraft(empty)
+                onApply(empty)
+              }}
+            >
+              Reset all
+            </Button>
+            <Button
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                onApply(draft)
+                onClose()
+              }}
+            >
+              Apply{activeCount > 0 ? ` (${activeCount})` : ''}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function InvoicePdfDrawer({
+  invoice,
+  customerName,
+  onClose,
+}: {
+  invoice: AllocationInvoice | null
+  customerName: string
+  onClose: () => void
+}) {
+  if (!invoice) return null
+  const outstanding = invoice.total - invoice.paidSoFar
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
+      <div className="fixed right-0 top-0 z-50 flex h-full w-[420px] flex-col bg-surface shadow-xl">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <p className="text-sm font-semibold text-heading">Invoice {invoice.id}</p>
+          <button type="button" onClick={onClose} className="text-ink-muted hover:text-ink">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="rounded-xl border border-border bg-white p-6 text-sm dark:bg-surface">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-lg font-bold text-heading">INVOICE</p>
+                <p className="mt-0.5 text-xs text-ink-muted">{invoice.id}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-ink-muted">Issued</p>
+                <p className="font-medium text-heading">{invoice.issuedDate}</p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <p className="font-semibold uppercase tracking-wide text-ink-muted">Bill to</p>
+                <p className="mt-1 font-medium text-heading">{customerName}</p>
+                <p className="text-ink-muted">123 Business Park, Singapore</p>
+              </div>
+              <div className="text-right">
+                <p className="font-semibold uppercase tracking-wide text-ink-muted">From</p>
+                <p className="mt-1 font-medium text-heading">Your Company Pte Ltd</p>
+                <p className="text-ink-muted">456 Supplier Road, Singapore</p>
+              </div>
+            </div>
+
+            <table className="mt-6 w-full text-xs">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="pb-2 text-left font-semibold uppercase tracking-wide text-ink-muted">Description</th>
+                  <th className="pb-2 text-right font-semibold uppercase tracking-wide text-ink-muted">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-border">
+                  <td className="py-3 text-ink">Goods / Services supplied</td>
+                  <td className="py-3 text-right tabular-nums text-heading">{sgd(invoice.total)}</td>
+                </tr>
+                {invoice.paidSoFar > 0 && (
+                  <tr className="border-b border-border">
+                    <td className="py-3 text-ink-muted">Less: payment received</td>
+                    <td className="py-3 text-right tabular-nums text-ink-muted">−{sgd(invoice.paidSoFar)}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            <div className="mt-4 flex items-center justify-between rounded-lg bg-accent/10 px-4 py-3">
+              <p className="text-sm font-semibold text-heading">Outstanding</p>
+              <p className="text-sm font-bold tabular-nums text-accent">{sgd(outstanding)}</p>
+            </div>
+
+            <div className="mt-6 flex items-center gap-2">
+              <span
+                className={clsx(
+                  'rounded-full px-2.5 py-1 text-xs font-medium',
+                  invoice.status === 'Partial'
+                    ? 'bg-amber-500/10 text-amber-600'
+                    : 'bg-emerald-500/10 text-emerald-600',
+                )}
+              >
+                {invoice.status === 'Partial' ? 'Partially paid' : 'Open'}
+              </span>
+              <span className="text-xs text-ink-muted">{invoice.ageDays} days old</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 function ModeToggle({ mode, onChange }: { mode: AllocationMode; onChange: (mode: AllocationMode) => void }) {
   return (
     <div className="inline-flex shrink-0 items-center gap-2 text-xs">
@@ -53,12 +337,12 @@ function ModeToggle({ mode, onChange }: { mode: AllocationMode; onChange: (mode:
         aria-checked={mode === 'manual'}
         aria-label="Toggle allocation mode"
         onClick={() => onChange(mode === 'ai' ? 'manual' : 'ai')}
-        className={clsx('relative h-5 w-9 shrink-0 rounded-full transition', mode === 'manual' ? 'bg-accent' : 'bg-border')}
+        className={clsx('relative h-5 w-9 shrink-0 rounded-full transition', mode === 'ai' ? 'bg-border' : 'bg-accent')}
       >
         <span
           className={clsx(
             'absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform',
-            mode === 'manual' ? 'translate-x-4' : 'translate-x-0.5',
+            mode === 'ai' ? 'translate-x-[-15px]' : 'translate-x-[0]',
           )}
         />
       </button>
@@ -73,7 +357,7 @@ function PaymentRow({ payment, selected, onSelect }: { payment: IncomingPayment;
       type="button"
       onClick={onSelect}
       className={clsx(
-        'flex w-full items-start justify-between gap-3 border-l-2 px-4 py-3 text-left transition',
+        'flex w-full items-start justify-between gap-3 border-l-2 border-b-0 px-4 py-3 text-left transition',
         selected ? 'border-accent bg-accent/5' : 'border-transparent hover:bg-surface-hover',
       )}
     >
@@ -90,8 +374,17 @@ function PaymentRow({ payment, selected, onSelect }: { payment: IncomingPayment;
   )
 }
 
-function AllocationCard({ payment, mode, onModeChange }: { payment: IncomingPayment; mode: AllocationMode; onModeChange: (mode: AllocationMode) => void }) {
+function AllocationCard({
+  payment,
+  mode,
+  onModeChange,
+}: {
+  payment: IncomingPayment
+  mode: AllocationMode
+  onModeChange: (mode: AllocationMode) => void
+}) {
   const [overrides, setOverrides] = useState<Record<string, Set<string>>>({})
+  const [pdfInvoice, setPdfInvoice] = useState<AllocationInvoice | null>(null)
 
   const checked = mode === 'manual' ? overrides[payment.id] ?? fifoSelection(payment) : fifoSelection(payment)
 
@@ -140,12 +433,17 @@ function AllocationCard({ payment, mode, onModeChange }: { payment: IncomingPaym
 
       <ul className="mt-4 divide-y divide-border">
         {allocationRows.map(({ invoice, outstanding, applied, checked: isChecked }) => (
-          <li key={invoice.id} className="flex items-start gap-3 py-3">
+          <li
+            key={invoice.id}
+            className="flex cursor-pointer items-start gap-3 py-3 hover:bg-surface-hover rounded-lg px-1 transition"
+            onClick={() => setPdfInvoice(invoice)}
+          >
             <input
               type="checkbox"
               checked={isChecked}
               disabled={mode === 'ai'}
               onChange={() => toggleInvoice(invoice.id)}
+              onClick={(e) => e.stopPropagation()}
               className="mt-1 h-4 w-4 shrink-0 rounded border-border accent-[var(--color-accent)] disabled:opacity-60"
               aria-label={`Allocate to ${invoice.id}`}
             />
@@ -196,6 +494,8 @@ function AllocationCard({ payment, mode, onModeChange }: { payment: IncomingPaym
           <Check className="h-3.5 w-3.5" /> Confirm &amp; post
         </Button>
       </div>
+
+      <InvoicePdfDrawer invoice={pdfInvoice} customerName={payment.customer.name} onClose={() => setPdfInvoice(null)} />
     </Card>
   )
 }
@@ -253,19 +553,40 @@ export function WorkbenchPage() {
   const [selectedId, setSelectedId] = useState(incomingPayments[0].id)
   const [mode, setMode] = useState<AllocationMode>('ai')
   const [query, setQuery] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [activeFilters, setActiveFilters] = useState<Filters>(emptyFilters())
 
-  const selectedPayment = incomingPayments.find((payment) => payment.id === selectedId) ?? incomingPayments[0]
+  const selectedPayment = incomingPayments.find((p) => p.id === selectedId) ?? incomingPayments[0]
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return incomingPayments
-    return incomingPayments.filter(
-      (payment) =>
-        payment.payerName.toLowerCase().includes(q) ||
-        payment.customer.name.toLowerCase().includes(q) ||
-        payment.bankRef.toLowerCase().includes(q),
-    )
-  }, [query])
+    return incomingPayments.filter((payment) => {
+      if (
+        q &&
+        !payment.payerName.toLowerCase().includes(q) &&
+        !payment.customer.name.toLowerCase().includes(q) &&
+        !payment.bankRef.toLowerCase().includes(q)
+      )
+        return false
+      return true
+    })
+  }, [query, activeFilters])
+
+  const filterBadges = useMemo(() => {
+    const badges: { group: keyof Filters; value: string }[] = []
+    for (const value of activeFilters.matchType) badges.push({ group: 'matchType', value })
+    if (activeFilters.aiConfidence !== null) badges.push({ group: 'aiConfidence', value: `AI ≥ ${activeFilters.aiConfidence}%` })
+    return badges
+  }, [activeFilters])
+
+  function removeFilter(group: keyof Filters, value: string) {
+    setActiveFilters((prev) => {
+      if (group === 'aiConfidence') return { ...prev, aiConfidence: null }
+      const next = new Set(prev.matchType)
+      next.delete(value)
+      return { ...prev, matchType: next }
+    })
+  }
 
   return (
     <section className="@container space-y-4">
@@ -277,6 +598,9 @@ export function WorkbenchPage() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <Button variant="white" size="sm" onClick={() => setFilterOpen(true)}>
+            <SlidersHorizontal className="h-4 w-4" /> Add
+          </Button>
           <Button variant="white" size="sm">
             <Download className="h-4 w-4" /> Import statement
           </Button>
@@ -285,6 +609,33 @@ export function WorkbenchPage() {
           </Button>
         </div>
       </div>
+
+
+      {filterBadges.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 pt-3">
+          {filterBadges.map(({ group, value }) => (
+            <span
+              key={`${group}-${value}`}
+              className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent"
+            >
+              {value}
+              <button type="button" onClick={() => removeFilter(group, value)} className="ml-0.5 hover:opacity-70">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+          {filtersActive(activeFilters) && (
+            <button
+              type="button"
+              onClick={() => setActiveFilters(emptyFilters())}
+              className="text-xs text-ink-muted underline hover:text-ink"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      )}
+
 
       <div className="grid grid-cols-1 gap-4 @4xl:grid-cols-[1.3fr_1fr]">
         <Card className="flex min-w-0 flex-col p-4">
@@ -304,7 +655,6 @@ export function WorkbenchPage() {
               <span className="whitespace-nowrap text-xs font-medium text-accent">{unmatchedCount} unmatched</span>
             </div>
           </div>
-
           <div className="divide-y divide-border">
             {filtered.map((payment) => (
               <PaymentRow key={payment.id} payment={payment} selected={payment.id === selectedId} onSelect={() => setSelectedId(payment.id)} />
@@ -318,6 +668,13 @@ export function WorkbenchPage() {
           <PayersCard payment={selectedPayment} />
         </div>
       </div>
+
+      <FilterDrawer
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        filters={activeFilters}
+        onApply={(f) => setActiveFilters(f)}
+      />
     </section>
   )
 }
