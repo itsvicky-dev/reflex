@@ -52,6 +52,13 @@ export const riskAssessment = {
   disputeHistoryAmount: '₹0',
   disputeHistoryOpenCount: 0,
   externalMarketRisk: 'Low',
+  creditScore: 782,
+  daysPastDue: 4,
+  riskTrend6M: 'Stable',
+  portfolioConcentration: '8.2%',
+  guarantorCoverage: '112%',
+  nextReviewDate: '15 Aug 2025',
+  keyRiskFactors: ['Single-industry exposure', 'Seasonal cash flow volatility', 'New credit facility (Q2 FY25)'],
 }
 
 export const businessRelationship = {

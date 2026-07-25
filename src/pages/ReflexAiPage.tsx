@@ -37,12 +37,12 @@ import { RiskMatrixChart } from '../components/ai/charts/RiskMatrixChart'
 const DEFAULT_ID = ''
 
 const SUGGESTIONS = [
-  { label: 'Predict cash flow for the next 30 days', icon: WalletCards },
-  { label: 'Find customers with increasing payment risk', icon: SquareAsterisk },
-  { label: 'Explain why collections dropped this month', icon: CalendarMinus },
-  { label: 'Show invoices requiring immediate action', icon: FileStack },
-  { label: 'Investigate reconciliation exceptions', icon: BanknoteX },
-  { label: "Compare this month's performance with last month", icon: Summary },
+  { label: 'Predict cash flow for the next 30 days', category: 'Cash flow', icon: WalletCards },
+  { label: 'Find customers with increasing payment risk', category: 'Risk', icon: SquareAsterisk },
+  { label: 'Explain why collections dropped this month', category: 'Collections', icon: CalendarMinus },
+  { label: 'Show invoices requiring immediate action', category: 'Invoices', icon: FileStack },
+  { label: 'Investigate reconciliation exceptions', category: 'Reconciliation', icon: BanknoteX },
+  { label: "Compare this month's performance with last month", category: 'Performance', icon: Summary },
 ]
 
 export function ReflexAiPage() {
@@ -296,9 +296,9 @@ export function ReflexAiPage() {
                 <Composer />
               </div>
 
-              {/* Suggestions sit below the composer; hovering one previews its
-                  prompt inside the textarea above without committing it. */}
-              <div className="grid w-full grid-cols-1 gap-2 max-w-[350px]">
+              {/* Suggestions sit outside the composer's border; hovering one
+                  previews its prompt inside the textarea above without committing it. */}
+              <div className="w-full space-y-0.5 max-w-lg">
                 {SUGGESTIONS.map((suggestion) => (
                   <button
                     key={suggestion.label}
@@ -311,10 +311,18 @@ export function ReflexAiPage() {
                       setMessage(suggestion.label)
                       setHoveredSuggestion(null)
                     }}
-                    className="flex w-full items-center gap-2 rounded-xl border border-border px-3 py-2.5 text-left text-sm text-ink transition hover:border-accent hover:bg-accent/5 hover:text-accent"
+                    className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition hover:bg-surface-hover"
                   >
-                    <suggestion.icon className="h-6 w-6 shrink-0" />
-                    <span className="truncate">{suggestion.label}</span>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F4F5F6] text-ink">
+                      <suggestion.icon className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-ink">{suggestion.label}</span>
+                      <span className="block text-xs text-ink-muted">{suggestion.category}</span>
+                    </span>
+                    <span className="shrink-0 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-ink">
+                      Ask
+                    </span>
                   </button>
                 ))}
               </div>

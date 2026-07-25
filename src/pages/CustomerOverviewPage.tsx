@@ -15,7 +15,7 @@ import {
   Sparkles,
   TrendingUp,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Badge, type BadgeTone } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -59,7 +59,7 @@ function Sparkline({ points, colorVar, height = 44 }: { points: number[]; colorV
   const gradientId = `overview-spark-${colorVar.replace(/[^a-z0-9]/gi, '')}-${height}`
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="h-11 w-full" style={{ height }}>
+    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="h-11 w-full" style={{ height }}>
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={colorVar} stopOpacity={0.25} />
@@ -69,6 +69,134 @@ function Sparkline({ points, colorVar, height = 44 }: { points: number[]; colorV
       <path d={areaPath} fill={`url(#${gradientId})`} />
       <path d={linePath} fill="none" stroke={colorVar} strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  )
+}
+
+const REVENUE_CHART_WIDTH = 640
+const REVENUE_CHART_HEIGHT = 200
+const REVENUE_CHART_PAD = { top: 16, right: 12, bottom: 24, left: 40 }
+
+function RevenueTrendChart({ months, points }: { months: string[]; points: number[] }) {
+  const svgRef = useRef<SVGSVGElement>(null)
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
+
+  const plotW = REVENUE_CHART_WIDTH - REVENUE_CHART_PAD.left - REVENUE_CHART_PAD.right
+  const plotH = REVENUE_CHART_HEIGHT - REVENUE_CHART_PAD.top - REVENUE_CHART_PAD.bottom
+  const n = points.length
+
+  const dataMin = Math.min(...points)
+  const dataMax = Math.max(...points)
+  const niceMin = Math.floor(dataMin / 10) * 10
+  const niceMax = Math.ceil(dataMax / 10) * 10
+  const step = (niceMax - niceMin) / 4 || 10
+  const yTicks = [0, 1, 2, 3, 4].map((i) => niceMin + step * i)
+
+  const xAt = (i: number) => REVENUE_CHART_PAD.left + (i / (n - 1)) * plotW
+  const yAt = (v: number) => REVENUE_CHART_PAD.top + plotH - ((v - niceMin) / (niceMax - niceMin || 1)) * plotH
+
+  const linePath = points.map((v, i) => `${i === 0 ? 'M' : 'L'}${xAt(i)},${yAt(v)}`).join(' ')
+  const baseline = REVENUE_CHART_PAD.top + plotH
+  const areaPath = `${linePath} L${xAt(n - 1)},${baseline} L${xAt(0)},${baseline} Z`
+
+  const xTickIndexes = Array.from(new Set([0, 3, 6, 9, n - 1])).filter((i) => i < n)
+
+  function handlePointerMove(event: React.PointerEvent<SVGRectElement>) {
+    const svg = svgRef.current
+    if (!svg) return
+    const rect = svg.getBoundingClientRect()
+    const localX = ((event.clientX - rect.left) / rect.width) * REVENUE_CHART_WIDTH
+    const ratio = (localX - REVENUE_CHART_PAD.left) / plotW
+    const index = Math.round(ratio * (n - 1))
+    setHoverIndex(Math.min(n - 1, Math.max(0, index)))
+  }
+
+  const hovered = hoverIndex !== null ? { i: hoverIndex, month: months[hoverIndex], value: points[hoverIndex] } : null
+  const lastIndex = n - 1
+
+  return (
+    <div className="relative">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${REVENUE_CHART_WIDTH} ${REVENUE_CHART_HEIGHT}`}
+        preserveAspectRatio="none"
+        className="h-[170px] w-full"
+      >
+        <defs>
+          <linearGradient id="revenue-trend-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--color-chart-good)" stopOpacity={0.16} />
+            <stop offset="100%" stopColor="var(--color-chart-good)" stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+
+        {yTicks.map((tick) => (
+          <g key={tick}>
+            <line
+              x1={REVENUE_CHART_PAD.left}
+              x2={REVENUE_CHART_WIDTH - REVENUE_CHART_PAD.right}
+              y1={yAt(tick)}
+              y2={yAt(tick)}
+              stroke="var(--color-chart-grid)"
+              strokeWidth={1}
+            />
+            <text x={REVENUE_CHART_PAD.left - 8} y={yAt(tick) + 3} textAnchor="end" fontSize={9} fill="var(--color-ink-muted)">
+              ₹{tick}L
+            </text>
+          </g>
+        ))}
+
+        {xTickIndexes.map((i) => (
+          <text key={i} x={xAt(i)} y={REVENUE_CHART_HEIGHT - 6} textAnchor="middle" fontSize={9} fill="var(--color-ink-muted)">
+            {months[i]}
+          </text>
+        ))}
+
+        <path d={areaPath} fill="url(#revenue-trend-fill)" />
+        <path d={linePath} fill="none" stroke="var(--color-chart-good)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+
+        <circle cx={xAt(lastIndex)} cy={yAt(points[lastIndex])} r={5} fill="var(--color-chart-good)" stroke="var(--color-surface)" strokeWidth={2} />
+        <text x={xAt(lastIndex) - 8} y={yAt(points[lastIndex]) - 10} textAnchor="end" fontSize={10} fontWeight={600} fill="var(--color-heading)">
+          ₹{points[lastIndex]}L
+        </text>
+
+        {hovered && hovered.i !== lastIndex && (
+          <>
+            <line
+              x1={xAt(hovered.i)}
+              x2={xAt(hovered.i)}
+              y1={REVENUE_CHART_PAD.top}
+              y2={baseline}
+              stroke="var(--color-chart-baseline)"
+              strokeWidth={1}
+              strokeDasharray="3 3"
+            />
+            <circle cx={xAt(hovered.i)} cy={yAt(hovered.value)} r={5} fill="var(--color-chart-good)" stroke="var(--color-surface)" strokeWidth={2} />
+          </>
+        )}
+
+        <rect
+          x={REVENUE_CHART_PAD.left}
+          y={0}
+          width={plotW}
+          height={REVENUE_CHART_HEIGHT}
+          fill="transparent"
+          onPointerMove={handlePointerMove}
+          onPointerLeave={() => setHoverIndex(null)}
+        />
+      </svg>
+
+      {hovered && (
+        <div
+          className="pointer-events-none absolute z-10 min-w-[100px] -translate-x-1/2 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[11px] shadow-md"
+          style={{
+            left: `${(xAt(hovered.i) / REVENUE_CHART_WIDTH) * 100}%`,
+            top: `${Math.max(0, (yAt(hovered.value) / REVENUE_CHART_HEIGHT) * 100 - 22)}%`,
+          }}
+        >
+          <p className="text-ink-muted">{hovered.month}</p>
+          <p className="font-semibold text-heading">₹{hovered.value}L</p>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -503,25 +631,42 @@ export function CustomerOverviewPage() {
               <SectionHeading title="Risk Assessment" />
               <Badge tone="success">{riskAssessment.riskLevel}</Badge>
             </div>
-            <div className="mt-4 grid grid-cols-1 gap-6 @3xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <div className="flex justify-center @3xl:justify-start">
-                <RadialGauge value={riskAssessment.aiRiskScore} colorClass="text-emerald-500">
-                  <span className="text-xl font-semibold text-heading">{riskAssessment.aiRiskScore}</span>
-                  <span className="text-[10px] text-ink-muted">/100</span>
-                  <span className="mt-0.5 text-[10px] text-ink-muted">AI Risk Score</span>
-                </RadialGauge>
+            <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <RadialGauge value={riskAssessment.aiRiskScore} colorClass="text-emerald-500">
+                <span className="text-xl font-semibold text-heading">{riskAssessment.aiRiskScore}</span>
+                <span className="text-[10px] text-ink-muted">/100</span>
+                <span className="mt-0.5 text-[10px] text-ink-muted">AI Risk Score</span>
+              </RadialGauge>
+              <div className="flex min-w-[200px] flex-1 flex-wrap gap-x-8 gap-y-4">
+                <StatTile label="Credit Score" value={`${riskAssessment.creditScore}`} value2="/ 900" />
+                <StatTile label="Risk Trend (6M)" value={riskAssessment.riskTrend6M} />
+                <StatTile label="Days Past Due" value={`${riskAssessment.daysPastDue}`} value2="Days" />
+                <StatTile label="Next Review" value={riskAssessment.nextReviewDate} />
               </div>
-              <div className="divide-y divide-border border-t border-border @3xl:border-l @3xl:border-t-0 @3xl:pl-6">
-                <InfoRow label="Default Probability" value={riskAssessment.defaultProbability} />
-                <InfoRow label="Late Payment Trend (3M)" value={riskAssessment.latePaymentTrend3M} />
-                <InfoRow label="Credit Exposure" value={riskAssessment.creditExposure} />
-                <InfoRow
-                  label="Dispute History"
-                  value={riskAssessment.disputeHistoryAmount}
-                  sublabel={`(${riskAssessment.disputeHistoryOpenCount} Open)`}
-                />
-                <InfoRow label="External Market Risk" value={riskAssessment.externalMarketRisk} />
-              </div>
+            </div>
+
+            <div className="mt-2 grid grid-cols-1 gap-x-6 divide-y divide-border border-t border-border @lg:grid-cols-3 @lg:divide-y-0">
+              <InfoRow label="Default Probability" value={riskAssessment.defaultProbability} />
+              <InfoRow label="Late Payment Trend (3M)" value={riskAssessment.latePaymentTrend3M} />
+              <InfoRow label="Credit Exposure" value={riskAssessment.creditExposure} />
+              <InfoRow
+                label="Dispute History"
+                value={riskAssessment.disputeHistoryAmount}
+                sublabel={`(${riskAssessment.disputeHistoryOpenCount} Open)`}
+              />
+              <InfoRow label="External Market Risk" value={riskAssessment.externalMarketRisk} />
+              <InfoRow label="Portfolio Concentration" value={riskAssessment.portfolioConcentration} />
+              <InfoRow label="Guarantor Coverage" value={riskAssessment.guarantorCoverage} />
+              <InfoRow label="Customer Since" value={relationshipSince} />
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+              <span className="text-xs text-ink-muted">Key Risk Factors</span>
+              {riskAssessment.keyRiskFactors.map((factor) => (
+                <Badge key={factor} tone="warning">
+                  {factor}
+                </Badge>
+              ))}
             </div>
           </Card>
 
@@ -557,23 +702,17 @@ export function CustomerOverviewPage() {
                 <TrendingUp className="h-3.5 w-3.5" /> {revenueTrend.yoyGrowth}% YoY
               </span>
             </div>
-            <div className="mt-4 grid grid-cols-1 gap-6 @3xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+            <div className="mt-4 grid grid-cols-1 gap-6 @3xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] @3xl:items-start">
               <div>
-                <Sparkline points={revenueTrend.points} colorVar="rgb(16 185 129)" height={90} />
-                <div className="mt-1 flex justify-between text-[10px] text-ink-muted">
-                  <span>{revenueTrend.months[0]}</span>
-                  <span>{revenueTrend.months[revenueTrend.months.length - 1]}</span>
-                </div>
+                <RevenueTrendChart months={revenueTrend.months} points={revenueTrend.points} />
                 <div className="mt-4 grid grid-cols-2 gap-4 border-t border-border pt-4">
                   <StatTile label="Current Year" value={revenueTrend.currentYearTotal} />
                   <StatTile label="Previous Year" value={revenueTrend.previousYearTotal} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 rounded-lg border border-border p-3 @3xl:grid-cols-1 @3xl:divide-y @3xl:divide-border">
+              <div className="grid grid-cols-2 gap-4 rounded-lg border border-border p-3">
                 {revenueTrend.quarters.map((q) => (
-                  <div key={q.label} className="@3xl:py-2 @3xl:first:pt-0 @3xl:last:pb-0">
-                    <StatTile label={q.label} value={q.value} deltaLabel={q.deltaLabel} />
-                  </div>
+                  <StatTile key={q.label} label={q.label} value={q.value} deltaLabel={q.deltaLabel} />
                 ))}
               </div>
             </div>
