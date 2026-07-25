@@ -63,6 +63,7 @@ export const router = createBrowserRouter([
       { path: 'reconciliation-hub/overview', element: <ReconciliationHubOverviewPage /> },
       { path: 'reconciliation-hub/workbench', element: <WorkbenchPage /> },
       { path: 'customer-intelligence/overview', element: <CustomerOverviewPage /> },
+      { path: 'customer-intelligence/overview/:customerId', element: <CustomerOverviewPage /> },
       { path: 'customer-intelligence/customers', element: <CustomersPage /> },
       { path: 'customer-intelligence/payments', element: <CustomerPaymentsPage /> },
       { path: 'transactions', element: <TransactionsPage /> },

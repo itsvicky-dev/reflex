@@ -1,28 +1,39 @@
 import { clsx } from 'clsx'
 import {
-  ChevronDown,
   ChevronRight,
   CreditCard,
+  FileWarning,
+  Grid3x3,
   Handshake,
+  HeartPulse,
+  History,
+  LayoutDashboard,
+  ListChecks,
   MessageCircle,
   Percent,
   ShieldCheck,
   Sparkles,
   TrendingUp,
 } from 'lucide-react'
-import { Badge } from '../components/ui/Badge'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { Badge, type BadgeTone } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
+import { customerDirectory, customerHealthTier, type CustomerHealthTier } from '../data/mockCustomerDirectory'
 import {
   aiExecutiveSummary,
   businessRelationship,
   customerOverviewProfile,
   customerOverviewStats,
   financialHealth,
+  invoiceDisputes,
   paymentBehaviorHeatMap,
   paymentBehaviorMonths,
   paymentBehaviorStats,
+  paymentHistory,
   recommendedActions,
+  revenueTrend,
   riskAssessment,
   type PaymentBehaviorBucket,
   type RecommendedAction,
@@ -45,10 +56,10 @@ function Sparkline({ points, colorVar, height = 44 }: { points: number[]; colorV
 
   const linePath = points.map((v, i) => `${i === 0 ? 'M' : 'L'}${xAt(i)},${yAt(v)}`).join(' ')
   const areaPath = `${linePath} L${xAt(n - 1)},${height} L${xAt(0)},${height} Z`
-  const gradientId = `overview-spark-${colorVar.replace(/[^a-z0-9]/gi, '')}`
+  const gradientId = `overview-spark-${colorVar.replace(/[^a-z0-9]/gi, '')}-${height}`
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="h-11 w-full">
+    <svg viewBox={`0 0 ${width} ${height}`} className="h-11 w-full" style={{ height }}>
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={colorVar} stopOpacity={0.25} />
@@ -169,245 +180,263 @@ const actionIcon: Record<RecommendedAction['icon'], React.ElementType> = {
   discount: Percent,
 }
 
+const paymentStatusTone: Record<string, BadgeTone> = {
+  Cleared: 'success',
+  Pending: 'warning',
+  Failed: 'danger',
+}
+
+const disputeStatusTone: Record<string, BadgeTone> = {
+  Open: 'danger',
+  'Under Review': 'warning',
+  Resolved: 'success',
+}
+
+const tierLabel: Record<CustomerHealthTier, string> = {
+  healthy: 'Healthy',
+  watch: 'Watch',
+  critical: 'Critical',
+}
+
+const tierBadgeTone: Record<CustomerHealthTier, BadgeTone> = {
+  healthy: 'success',
+  watch: 'warning',
+  critical: 'danger',
+}
+
+const tierStripGradient: Record<CustomerHealthTier, string> = {
+  healthy: 'from-emerald-500/10 via-emerald-500/0 to-transparent',
+  watch: 'from-amber-500/10 via-amber-500/0 to-transparent',
+  critical: 'from-rose-500/10 via-rose-500/0 to-transparent',
+}
+
+function initials(name: string) {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+}
+
+const sgd = (value: number) => `SGD ${value.toLocaleString('en-SG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+
+function StripStat({ label, value, tone }: { label: string; value: string; tone?: 'danger' }) {
+  return (
+    <div>
+      <p className="text-[11px] text-ink-muted">{label}</p>
+      <p className={clsx('mt-0.5 text-sm font-semibold tabular-nums', tone === 'danger' ? 'text-rose-600 dark:text-rose-400' : 'text-heading')}>{value}</p>
+    </div>
+  )
+}
+
+const sections = [
+  { id: 'summary', label: 'Summary', icon: LayoutDashboard },
+  { id: 'recommended-actions', label: 'Recommended Actions', icon: ListChecks },
+  { id: 'ai-summary', label: 'AI Executive Summary', icon: Sparkles },
+  { id: 'financial-health', label: 'Financial Health', icon: HeartPulse },
+  { id: 'risk-assessment', label: 'Risk Assessment', icon: ShieldCheck },
+  { id: 'business-relationship', label: 'Business Relationship', icon: Handshake },
+  { id: 'revenue-trend', label: 'Revenue Trend', icon: TrendingUp },
+  { id: 'payment-history', label: 'Payment History', icon: History },
+  { id: 'payment-behavior', label: 'Payment Behavior', icon: Grid3x3 },
+  { id: 'invoice-disputes', label: 'Invoice Disputes', icon: FileWarning },
+] as const
+
+type SectionId = (typeof sections)[number]['id']
+
+function SectionNav({ activeId, onNavigate }: { activeId: SectionId; onNavigate: (id: SectionId) => void }) {
+  return (
+    <nav className="flex gap-1 overflow-x-auto pb-1 @4xl:flex-col @4xl:overflow-visible @4xl:pb-0">
+      {sections.map((section) => {
+        const Icon = section.icon
+        const active = activeId === section.id
+        return (
+          <button
+            key={section.id}
+            type="button"
+            onClick={() => onNavigate(section.id)}
+            className={clsx(
+              'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-left text-xs font-medium transition @4xl:w-full',
+              active ? 'bg-accent/10 text-accent' : 'text-ink-muted hover:bg-surface-hover hover:text-ink',
+            )}
+          >
+            <Icon className="h-3.5 w-3.5 shrink-0" />
+            {section.label}
+          </button>
+        )
+      })}
+    </nav>
+  )
+}
+
 export function CustomerOverviewPage() {
+  const { customerId } = useParams<{ customerId: string }>()
+  const customer = useMemo(() => customerDirectory.find((c) => c.id === customerId), [customerId])
+  const tier: CustomerHealthTier = customer ? customerHealthTier(customer.healthScore) : 'healthy'
+
+  const displayName = customer?.name ?? customerOverviewProfile.name
+  const badgeLabel = customer ? `${customer.segment} · ${customer.type}` : customerOverviewProfile.badge
+  const accountManagerName = customer?.accountManager ?? customerOverviewProfile.accountManager
+  const industry = customer?.type ?? customerOverviewProfile.industry
+  const businessUnit = customer ? `${customer.segment} Accounts` : customerOverviewProfile.businessUnit
+  const relationshipSince = customer?.customerSince ?? customerOverviewProfile.relationshipSince
+  const customerIdLabel = customer?.code ?? customerOverviewProfile.customerId
+  const healthScore = customer?.healthScore ?? financialHealth.score
+  const outstandingDisplay = customer ? sgd(customer.outstanding) : customerOverviewStats.outstandingBalance
+  const overdueDisplay = customer ? (customer.overdueAmount > 0 ? sgd(customer.overdueAmount) : '—') : '—'
+  const upcomingDisplay = customer ? (customer.upcomingAmount > 0 ? sgd(customer.upcomingAmount) : '—') : customerOverviewStats.availableCredit
+
+  const [activeSection, setActiveSection] = useState<SectionId>('summary')
+
+  useEffect(() => {
+    setActiveSection('summary')
+    document.querySelector('main')?.scrollTo({ top: 0 })
+  }, [customerId])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting)
+        if (visible.length === 0) return
+        const topMost = visible.reduce((a, b) => (a.boundingClientRect.top < b.boundingClientRect.top ? a : b))
+        setActiveSection(topMost.target.id as SectionId)
+      },
+      { rootMargin: '-96px 0px -70% 0px', threshold: 0 },
+    )
+    sections.forEach((section) => {
+      const el = document.getElementById(section.id)
+      if (el) observer.observe(el)
+    })
+    return () => observer.disconnect()
+  }, [])
+
+  function goToSection(id: SectionId) {
+    setActiveSection(id)
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <section className="@container space-y-4">
       <div className="flex flex-col gap-1 @lg:flex-row @lg:items-center @lg:justify-between">
         <div>
           <h1 className="text-lg font-semibold text-heading">Customer 360</h1>
-          <p className="mt-0.5 text-xs text-ink-muted">Customers / {customerOverviewProfile.name}</p>
+          <p className="mt-0.5 text-xs text-ink-muted">
+            <Link to="/customer-intelligence/customers" className="hover:text-ink hover:underline">
+              Customers
+            </Link>{' '}
+            / {displayName}
+          </p>
         </div>
         <Button variant="white" size="sm">
-          Actions <ChevronDown className="h-3.5 w-3.5" />
+          Actions
         </Button>
       </div>
 
-      <Card className="min-w-0 p-5">
-        <div className="grid grid-cols-1 gap-6 @3xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-sm font-bold text-white">
-              AI
+      <Card className={clsx('relative min-w-0 overflow-hidden bg-gradient-to-br p-5', tierStripGradient[tier])}>
+        <div className="relative flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-base font-bold text-white">
+              {initials(displayName)}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-base font-semibold text-heading">{customerOverviewProfile.name}</h2>
-                <Badge tone="success">{customerOverviewProfile.badge}</Badge>
+                <h2 className="text-base font-semibold text-heading">{displayName}</h2>
+                <Badge tone="neutral">{badgeLabel}</Badge>
+                <Badge tone={tierBadgeTone[tier]}>{tierLabel[tier]}</Badge>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs @lg:grid-cols-3">
+              <p className="mt-1 truncate text-xs text-ink-muted">
+                {customerIdLabel}
+                {customer && ` · ${customer.city}`} · Managed by {accountManagerName}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3 @lg:grid-cols-4 @2xl:shrink-0">
+            <StripStat label="Health Score" value={`${healthScore}%`} />
+            <StripStat label="Outstanding" value={outstandingDisplay} />
+            <StripStat label="Overdue" value={overdueDisplay} tone={overdueDisplay !== '—' ? 'danger' : undefined} />
+            <StripStat label="Upcoming" value={upcomingDisplay} />
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4 @4xl:grid-cols-[220px_minmax(0,1fr)] @4xl:items-start">
+        <Card className="min-w-0 p-2 @4xl:sticky @4xl:top-6">
+          <SectionNav activeId={activeSection} onNavigate={goToSection} />
+        </Card>
+
+        <div className="min-w-0 space-y-4">
+          <Card id="summary" className="min-w-0 scroll-mt-6 p-5">
+            <SectionHeading title="Summary" />
+            <div className="mt-4 grid grid-cols-1 gap-6 @3xl:grid-cols-2">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs @lg:grid-cols-3 @3xl:grid-cols-2">
                 <div>
                   <p className="text-ink-muted">Industry</p>
-                  <p className="mt-0.5 font-medium text-heading">{customerOverviewProfile.industry}</p>
+                  <p className="mt-0.5 font-medium text-heading">{industry}</p>
                 </div>
                 <div>
                   <p className="text-ink-muted">Business Unit</p>
-                  <p className="mt-0.5 font-medium text-heading">{customerOverviewProfile.businessUnit}</p>
+                  <p className="mt-0.5 font-medium text-heading">{businessUnit}</p>
                 </div>
                 <div>
                   <p className="text-ink-muted">Account Manager</p>
-                  <p className="mt-0.5 font-medium text-heading">{customerOverviewProfile.accountManager}</p>
+                  <p className="mt-0.5 font-medium text-heading">{accountManagerName}</p>
                 </div>
                 <div>
                   <p className="text-ink-muted">Customer ID</p>
-                  <p className="mt-0.5 font-medium text-heading">{customerOverviewProfile.customerId}</p>
+                  <p className="mt-0.5 font-medium text-heading">{customerIdLabel}</p>
                 </div>
                 <div>
                   <p className="text-ink-muted">Relationship Since</p>
-                  <p className="mt-0.5 font-medium text-heading">{customerOverviewProfile.relationshipSince}</p>
+                  <p className="mt-0.5 font-medium text-heading">{relationshipSince}</p>
                 </div>
                 <div>
                   <p className="text-ink-muted">GSTIN</p>
                   <p className="mt-0.5 font-medium text-heading">{customerOverviewProfile.gstin}</p>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-border pt-4 @3xl:border-l @3xl:border-t-0 @3xl:pl-6 @3xl:pt-0">
-            <div>
-              <p className="text-xs text-ink-muted">Annual Revenue Contribution</p>
-              <p className="mt-0.5 text-base font-semibold text-heading">{customerOverviewStats.annualRevenueContribution}</p>
-              <p className="mt-0.5 text-[11px] text-ink-muted">{customerOverviewStats.annualRevenueContributionSublabel}</p>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-border pt-4 @3xl:border-l @3xl:border-t-0 @3xl:pl-6 @3xl:pt-0">
+                <div>
+                  <p className="text-xs text-ink-muted">Annual Revenue Contribution</p>
+                  <p className="mt-0.5 text-base font-semibold text-heading">{customerOverviewStats.annualRevenueContribution}</p>
+                  <p className="mt-0.5 text-[11px] text-ink-muted">{customerOverviewStats.annualRevenueContributionSublabel}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-ink-muted">Current Credit Limit</p>
+                  <p className="mt-0.5 text-base font-semibold text-heading">{customerOverviewStats.currentCreditLimit}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-ink-muted">Outstanding Balance</p>
+                  <p className="mt-0.5 text-base font-semibold text-heading">{outstandingDisplay}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-ink-muted">Available Credit</p>
+                  <p className="mt-0.5 text-base font-semibold text-heading">{customerOverviewStats.availableCredit}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-xs text-ink-muted">Last Payment Received</p>
+                  <p className="mt-0.5 text-base font-semibold text-heading">
+                    {customerOverviewStats.lastPaymentReceived}
+                    <span className="ml-1.5 text-[11px] font-normal text-ink-muted">{customerOverviewStats.lastPaymentReceivedDate}</span>
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-ink-muted">Current Credit Limit</p>
-              <p className="mt-0.5 text-base font-semibold text-heading">{customerOverviewStats.currentCreditLimit}</p>
-            </div>
-            <div>
-              <p className="text-xs text-ink-muted">Outstanding Balance</p>
-              <p className="mt-0.5 text-base font-semibold text-heading">{customerOverviewStats.outstandingBalance}</p>
-            </div>
-            <div>
-              <p className="text-xs text-ink-muted">Available Credit</p>
-              <p className="mt-0.5 text-base font-semibold text-heading">{customerOverviewStats.availableCredit}</p>
-            </div>
-            <div className="col-span-2">
-              <p className="text-xs text-ink-muted">Last Payment Received</p>
-              <p className="mt-0.5 text-base font-semibold text-heading">
-                {customerOverviewStats.lastPaymentReceived}
-                <span className="ml-1.5 text-[11px] font-normal text-ink-muted">{customerOverviewStats.lastPaymentReceivedDate}</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </Card>
+          </Card>
 
-      <div className="grid grid-cols-1 gap-4 @4xl:grid-cols-3">
-        <Card className="min-w-0 p-5">
-          <SectionHeading title="Financial Health" />
-          <div className="mt-4 flex items-center gap-4">
-            <RadialGauge value={financialHealth.score} colorClass="text-emerald-500">
-              <span className="text-xl font-semibold text-heading">{financialHealth.score}</span>
-              <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">{financialHealth.status}</span>
-            </RadialGauge>
-            <div className="min-w-0 flex-1 space-y-3">
-              <MetricBar label="Credit Utilization" value={financialHealth.creditUtilization} colorClass="bg-amber-400" />
-              <MetricBar label="Collection Efficiency" value={financialHealth.collectionEfficiency} colorClass="bg-emerald-500" />
-            </div>
-          </div>
-
-          <div className="mt-3 divide-y divide-border border-t border-border">
-            <InfoRow label="DSO (Days Sales Outstanding)" value={`${financialHealth.dsoDays} Days`} />
-            <InfoRow label="Payment Discipline" value={financialHealth.paymentDiscipline} />
-            <div className="flex items-center justify-between gap-3 py-2 text-xs">
-              <span className="text-ink-muted">Revenue Trend (YoY)</span>
-              <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-                <TrendingUp className="h-3 w-3" /> {financialHealth.revenueTrendYoY}%
-              </span>
-            </div>
-            <div className="py-2">
-              <Sparkline points={financialHealth.revenueTrendPoints} colorVar="rgb(16 185 129)" />
-            </div>
-            <InfoRow label="Cash Contribution" value={financialHealth.cashContribution} />
-            <InfoRow label="Profitability Indicator" value={financialHealth.profitabilityIndicator} />
-          </div>
-        </Card>
-
-        <Card className="min-w-0 p-5">
-          <div className="flex items-center justify-between gap-2">
-            <SectionHeading title="Risk Assessment" />
-            <Badge tone="success">{riskAssessment.riskLevel}</Badge>
-          </div>
-          <div className="mt-5 flex justify-center">
-            <RadialGauge value={riskAssessment.aiRiskScore} colorClass="text-emerald-500">
-              <span className="text-xl font-semibold text-heading">{riskAssessment.aiRiskScore}</span>
-              <span className="text-[10px] text-ink-muted">/100</span>
-              <span className="mt-0.5 text-[10px] text-ink-muted">AI Risk Score</span>
-            </RadialGauge>
-          </div>
-          <div className="mt-3 divide-y divide-border border-t border-border">
-            <InfoRow label="Default Probability" value={riskAssessment.defaultProbability} />
-            <InfoRow label="Late Payment Trend (3M)" value={riskAssessment.latePaymentTrend3M} />
-            <InfoRow label="Credit Exposure" value={riskAssessment.creditExposure} />
-            <InfoRow
-              label="Dispute History"
-              value={riskAssessment.disputeHistoryAmount}
-              sublabel={`(${riskAssessment.disputeHistoryOpenCount} Open)`}
-            />
-            <InfoRow label="External Market Risk" value={riskAssessment.externalMarketRisk} />
-          </div>
-        </Card>
-
-        <Card className="flex min-w-0 flex-col p-5">
-          <SectionHeading title="Business Relationship" />
-          <div className="mt-3 flex-1 divide-y divide-border border-t border-border">
-            <div className="flex items-center justify-between gap-3 py-2.5 text-xs">
-              <span className="flex items-center gap-2 text-ink-muted">
-                <Handshake className="h-3.5 w-3.5" /> Total Business Value
-              </span>
-              <span className="font-semibold text-heading">{businessRelationship.totalBusinessValue}</span>
-            </div>
-            <InfoRow label="Total Invoices Raised" value={businessRelationship.totalInvoicesRaised} />
-            <InfoRow label="Total Collections" value={businessRelationship.totalCollections} />
-            <InfoRow label="Active Contracts" value={businessRelationship.activeContracts} />
-            <InfoRow label="Products / Services" value={businessRelationship.productsServices} />
-            <InfoRow label="Avg. Monthly Billing" value={businessRelationship.avgMonthlyBilling} />
-            <InfoRow label="Customer Lifetime Value" value={businessRelationship.customerLifetimeValue} />
-          </div>
-          <Button variant="outline" size="sm" className="mt-4 w-full justify-between">
-            View Relationship Details <ChevronRight className="h-3.5 w-3.5" />
-          </Button>
-        </Card>
-      </div>
-
-      <Card className="min-w-0 p-5">
-        <SectionHeading title="Payment Behavior Overview" />
-        <div className="mt-4 grid grid-cols-1 gap-6 @4xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-          <div className="overflow-x-auto">
-            <p className="mb-2 text-xs text-ink-muted">Payment Behavior Heat Map (Last 12 Months)</p>
-            <table className="w-full min-w-[560px] border-separate border-spacing-1 text-center text-[11px]">
-              <thead>
-                <tr>
-                  <th className="w-28 text-left text-[10px] font-medium uppercase tracking-wide text-ink-muted" />
-                  {paymentBehaviorMonths.map((month) => (
-                    <th key={month} className="px-1 py-1 text-[10px] font-medium text-ink-muted">
-                      {month}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {heatMapBuckets.map((bucket) => (
-                  <tr key={bucket}>
-                    <td className="whitespace-nowrap px-1 py-1 text-left text-[11px] text-ink-muted">{bucket}</td>
-                    {paymentBehaviorHeatMap[bucket].map((value, i) => (
-                      <td key={`${bucket}-${paymentBehaviorMonths[i]}`} className="px-0 py-0">
-                        <div className={clsx('flex h-7 w-full items-center justify-center rounded font-semibold tabular-nums', heatCellClass(bucket, value))}>
-                          {value}
-                        </div>
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 rounded-lg border border-border p-3">
-              <StatTile
-                label="On-time Payments"
-                value={`${paymentBehaviorStats.onTimePayments}%`}
-                deltaLabel={paymentBehaviorStats.onTimePaymentsDelta}
-              />
-              <StatTile label="Avg. Delay (Days)" value={`${paymentBehaviorStats.avgDelayDays}`} deltaLabel={paymentBehaviorStats.avgDelayDaysDelta} deltaDown />
-              <StatTile label="Max Delay (Days)" value={`${paymentBehaviorStats.maxDelayDays}`} deltaLabel={paymentBehaviorStats.maxDelayDaysDelta} deltaDown />
-              <StatTile label="Total Payments" value={`${paymentBehaviorStats.totalPayments}`} value2={paymentBehaviorStats.totalPaymentsSublabel} />
-            </div>
-            <div>
-              <p className="text-xs text-ink-muted">Payment Trend</p>
-              <Sparkline points={paymentBehaviorStats.paymentTrendPoints} colorVar="rgb(16 185 129)" />
-              <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">{paymentBehaviorStats.paymentTrendLabel}</p>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <div className="grid grid-cols-1 gap-4 @4xl:grid-cols-2">
-        <Card className="min-w-0 p-5">
-          <p className="flex items-center gap-1.5 text-sm font-semibold text-heading">
-            <Sparkles className="h-4 w-4 text-accent" /> AI Executive Summary
-          </p>
-          <div className="mt-3 space-y-3 text-sm leading-relaxed text-ink">
-            {aiExecutiveSummary.paragraphs.map((paragraph, i) => (
-              <p key={i}>{paragraph}</p>
-            ))}
-          </div>
-          <p className="mt-4 flex items-center gap-1.5 border-t border-border pt-3 text-[11px] text-ink-muted">
-            <Sparkles className="h-3 w-3" /> {aiExecutiveSummary.generatedBy}
-            <span className="text-ink-muted/70">· {aiExecutiveSummary.generatedAt}</span>
-          </p>
-        </Card>
-
-        <Card className="min-w-0 p-5">
-          <p className="text-sm font-semibold text-heading">Recommended Actions</p>
-          <ul className="mt-3 divide-y divide-border">
-            {recommendedActions.map((action) => {
-              const Icon = actionIcon[action.icon]
-              return (
-                <li key={action.id}>
+          <Card id="recommended-actions" className="min-w-0 scroll-mt-6 p-5">
+            <SectionHeading title="Recommended Actions" />
+            <div className="mt-3 grid grid-cols-1 gap-2 @lg:grid-cols-2">
+              {recommendedActions.map((action) => {
+                const Icon = actionIcon[action.icon]
+                return (
                   <button
+                    key={action.id}
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 py-2.5 text-left transition hover:bg-surface-hover"
+                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-border p-3 text-left transition hover:bg-surface-hover"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
@@ -420,11 +449,258 @@ export function CustomerOverviewPage() {
                     </div>
                     <ChevronRight className="h-4 w-4 shrink-0 text-ink-muted" />
                   </button>
-                </li>
-              )
-            })}
-          </ul>
-        </Card>
+                )
+              })}
+            </div>
+          </Card>
+
+          <Card id="ai-summary" className="min-w-0 scroll-mt-6 p-5">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-heading">
+              <Sparkles className="h-4 w-4 text-accent" /> AI Executive Summary
+            </p>
+            <div className="my-3 space-y-3 text-sm leading-relaxed text-ink">
+              {aiExecutiveSummary.paragraphs.map((paragraph, i) => (
+                <p key={i}>{paragraph}</p>
+              ))}
+            </div>
+            <p className="mt-4 flex items-center gap-1.5 border-t border-border pt-3 text-[11px] text-ink-muted">
+              <Sparkles className="h-3 w-3" /> {aiExecutiveSummary.generatedBy}
+              <span className="text-ink-muted/70">· {aiExecutiveSummary.generatedAt}</span>
+            </p>
+          </Card>
+
+          <Card id="financial-health" className="min-w-0 scroll-mt-6 p-5">
+            <SectionHeading title="Financial Health" />
+            <div className="mt-4 grid grid-cols-1 gap-6 @3xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <div className="flex items-center gap-4">
+                <RadialGauge value={financialHealth.score} colorClass="text-emerald-500">
+                  <span className="text-xl font-semibold text-heading">{financialHealth.score}</span>
+                  <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">{financialHealth.status}</span>
+                </RadialGauge>
+                <div className="min-w-0 flex-1 space-y-3">
+                  <MetricBar label="Credit Utilization" value={financialHealth.creditUtilization} colorClass="bg-amber-400" />
+                  <MetricBar label="Collection Efficiency" value={financialHealth.collectionEfficiency} colorClass="bg-emerald-500" />
+                </div>
+              </div>
+
+              <div className="divide-y divide-border border-t border-border @3xl:border-l @3xl:border-t-0 @3xl:pl-6">
+                <InfoRow label="DSO (Days Sales Outstanding)" value={`${financialHealth.dsoDays} Days`} />
+                <InfoRow label="Payment Discipline" value={financialHealth.paymentDiscipline} />
+                <div className="flex items-center justify-between gap-3 py-2 text-xs">
+                  <span className="text-ink-muted">Revenue Trend (YoY)</span>
+                  <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                    <TrendingUp className="h-3 w-3" /> {financialHealth.revenueTrendYoY}%
+                  </span>
+                </div>
+                <InfoRow label="Cash Contribution" value={financialHealth.cashContribution} />
+                <InfoRow label="Profitability Indicator" value={financialHealth.profitabilityIndicator} />
+              </div>
+            </div>
+          </Card>
+
+          <Card id="risk-assessment" className="min-w-0 scroll-mt-6 p-5">
+            <div className="flex items-center justify-between gap-2">
+              <SectionHeading title="Risk Assessment" />
+              <Badge tone="success">{riskAssessment.riskLevel}</Badge>
+            </div>
+            <div className="mt-4 grid grid-cols-1 gap-6 @3xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <div className="flex justify-center @3xl:justify-start">
+                <RadialGauge value={riskAssessment.aiRiskScore} colorClass="text-emerald-500">
+                  <span className="text-xl font-semibold text-heading">{riskAssessment.aiRiskScore}</span>
+                  <span className="text-[10px] text-ink-muted">/100</span>
+                  <span className="mt-0.5 text-[10px] text-ink-muted">AI Risk Score</span>
+                </RadialGauge>
+              </div>
+              <div className="divide-y divide-border border-t border-border @3xl:border-l @3xl:border-t-0 @3xl:pl-6">
+                <InfoRow label="Default Probability" value={riskAssessment.defaultProbability} />
+                <InfoRow label="Late Payment Trend (3M)" value={riskAssessment.latePaymentTrend3M} />
+                <InfoRow label="Credit Exposure" value={riskAssessment.creditExposure} />
+                <InfoRow
+                  label="Dispute History"
+                  value={riskAssessment.disputeHistoryAmount}
+                  sublabel={`(${riskAssessment.disputeHistoryOpenCount} Open)`}
+                />
+                <InfoRow label="External Market Risk" value={riskAssessment.externalMarketRisk} />
+              </div>
+            </div>
+          </Card>
+
+          <Card id="business-relationship" className="min-w-0 scroll-mt-6 p-5">
+            <SectionHeading title="Business Relationship" />
+            <div className="mt-4 grid grid-cols-1 gap-x-6 @2xl:grid-cols-2">
+              <div className="flex items-center justify-between gap-3 border-b border-border py-2.5 text-xs @2xl:col-span-2">
+                <span className="flex items-center gap-2 text-ink-muted">
+                  <Handshake className="h-3.5 w-3.5" /> Total Business Value
+                </span>
+                <span className="font-semibold text-heading">{businessRelationship.totalBusinessValue}</span>
+              </div>
+              <div className="divide-y divide-border @2xl:border-r @2xl:border-border @2xl:pr-6">
+                <InfoRow label="Total Invoices Raised" value={businessRelationship.totalInvoicesRaised} />
+                <InfoRow label="Total Collections" value={businessRelationship.totalCollections} />
+                <InfoRow label="Active Contracts" value={businessRelationship.activeContracts} />
+              </div>
+              <div className="divide-y divide-border @2xl:pl-6">
+                <InfoRow label="Products / Services" value={businessRelationship.productsServices} />
+                <InfoRow label="Avg. Monthly Billing" value={businessRelationship.avgMonthlyBilling} />
+                <InfoRow label="Customer Lifetime Value" value={businessRelationship.customerLifetimeValue} />
+              </div>
+            </div>
+            <Button variant="outline" size="sm" className="mt-4 w-full justify-between">
+              View Relationship Details <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+          </Card>
+
+          <Card id="revenue-trend" className="min-w-0 scroll-mt-6 p-5">
+            <div className="flex items-center justify-between gap-2">
+              <SectionHeading title="Revenue Trend" />
+              <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <TrendingUp className="h-3.5 w-3.5" /> {revenueTrend.yoyGrowth}% YoY
+              </span>
+            </div>
+            <div className="mt-4 grid grid-cols-1 gap-6 @3xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+              <div>
+                <Sparkline points={revenueTrend.points} colorVar="rgb(16 185 129)" height={90} />
+                <div className="mt-1 flex justify-between text-[10px] text-ink-muted">
+                  <span>{revenueTrend.months[0]}</span>
+                  <span>{revenueTrend.months[revenueTrend.months.length - 1]}</span>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-4 border-t border-border pt-4">
+                  <StatTile label="Current Year" value={revenueTrend.currentYearTotal} />
+                  <StatTile label="Previous Year" value={revenueTrend.previousYearTotal} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 rounded-lg border border-border p-3 @3xl:grid-cols-1 @3xl:divide-y @3xl:divide-border">
+                {revenueTrend.quarters.map((q) => (
+                  <div key={q.label} className="@3xl:py-2 @3xl:first:pt-0 @3xl:last:pb-0">
+                    <StatTile label={q.label} value={q.value} deltaLabel={q.deltaLabel} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+
+          <Card id="payment-history" className="min-w-0 scroll-mt-6 p-5">
+            <SectionHeading title="Payment History" />
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full min-w-[520px] text-left text-xs">
+                <thead>
+                  <tr className="border-b border-border text-[10px] font-medium uppercase tracking-wide text-ink-muted">
+                    <th className="py-2 pr-3">Date</th>
+                    <th className="py-2 pr-3">Invoice No.</th>
+                    <th className="py-2 pr-3">Amount</th>
+                    <th className="py-2 pr-3">Method</th>
+                    <th className="py-2 pr-3 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {paymentHistory.map((payment) => (
+                    <tr key={payment.id}>
+                      <td className="py-2.5 pr-3 text-ink-muted">{payment.date}</td>
+                      <td className="py-2.5 pr-3 font-medium text-heading">{payment.invoiceNo}</td>
+                      <td className="py-2.5 pr-3 font-semibold tabular-nums text-heading">{payment.amount}</td>
+                      <td className="py-2.5 pr-3 text-ink-muted">{payment.method}</td>
+                      <td className="py-2.5 pr-3 text-right">
+                        <Badge tone={paymentStatusTone[payment.status]}>{payment.status}</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <Card id="payment-behavior" className="min-w-0 scroll-mt-6 p-5">
+            <SectionHeading title="Payment Behavior" />
+            <div className="mt-4 grid grid-cols-1 gap-6 @4xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+              <div className="overflow-x-auto">
+                <p className="mb-2 text-xs text-ink-muted">Payment Behavior Heat Map (Last 12 Months)</p>
+                <table className="w-full min-w-[560px] border-separate border-spacing-1 text-center text-[11px]">
+                  <thead>
+                    <tr>
+                      <th className="w-28 text-left text-[10px] font-medium uppercase tracking-wide text-ink-muted" />
+                      {paymentBehaviorMonths.map((month) => (
+                        <th key={month} className="px-1 py-1 text-[10px] font-medium text-ink-muted">
+                          {month}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {heatMapBuckets.map((bucket) => (
+                      <tr key={bucket}>
+                        <td className="whitespace-nowrap px-1 py-1 text-left text-[11px] text-ink-muted">{bucket}</td>
+                        {paymentBehaviorHeatMap[bucket].map((value, i) => (
+                          <td key={`${bucket}-${paymentBehaviorMonths[i]}`} className="px-0 py-0">
+                            <div className={clsx('flex h-7 w-full items-center justify-center rounded font-semibold tabular-nums', heatCellClass(bucket, value))}>
+                              {value}
+                            </div>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 rounded-lg border border-border p-3">
+                  <StatTile
+                    label="On-time Payments"
+                    value={`${paymentBehaviorStats.onTimePayments}%`}
+                    deltaLabel={paymentBehaviorStats.onTimePaymentsDelta}
+                  />
+                  <StatTile label="Avg. Delay (Days)" value={`${paymentBehaviorStats.avgDelayDays}`} deltaLabel={paymentBehaviorStats.avgDelayDaysDelta} deltaDown />
+                  <StatTile label="Max Delay (Days)" value={`${paymentBehaviorStats.maxDelayDays}`} deltaLabel={paymentBehaviorStats.maxDelayDaysDelta} deltaDown />
+                  <StatTile label="Total Payments" value={`${paymentBehaviorStats.totalPayments}`} value2={paymentBehaviorStats.totalPaymentsSublabel} />
+                </div>
+                <div>
+                  <p className="text-xs text-ink-muted">Payment Trend</p>
+                  <Sparkline points={paymentBehaviorStats.paymentTrendPoints} colorVar="rgb(16 185 129)" />
+                  <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">{paymentBehaviorStats.paymentTrendLabel}</p>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card id="invoice-disputes" className="min-w-0 scroll-mt-6 p-5">
+            <div className="flex items-center justify-between gap-2">
+              <SectionHeading title="Invoice Disputes" />
+              <span className="text-xs text-ink-muted">
+                {riskAssessment.disputeHistoryOpenCount} Open · {riskAssessment.disputeHistoryAmount} Total
+              </span>
+            </div>
+            {invoiceDisputes.length === 0 ? (
+              <p className="mt-4 py-6 text-center text-sm text-ink-muted">No invoice disputes on record.</p>
+            ) : (
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full min-w-[560px] text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-border text-[10px] font-medium uppercase tracking-wide text-ink-muted">
+                      <th className="py-2 pr-3">Invoice No.</th>
+                      <th className="py-2 pr-3">Amount</th>
+                      <th className="py-2 pr-3">Reason</th>
+                      <th className="py-2 pr-3">Raised On</th>
+                      <th className="py-2 pr-3 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {invoiceDisputes.map((dispute) => (
+                      <tr key={dispute.id}>
+                        <td className="py-2.5 pr-3 font-medium text-heading">{dispute.invoiceNo}</td>
+                        <td className="py-2.5 pr-3 font-semibold tabular-nums text-heading">{dispute.amount}</td>
+                        <td className="py-2.5 pr-3 text-ink-muted">{dispute.reason}</td>
+                        <td className="py-2.5 pr-3 text-ink-muted">{dispute.raisedOn}</td>
+                        <td className="py-2.5 pr-3 text-right">
+                          <Badge tone={disputeStatusTone[dispute.status]}>{dispute.status}</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        </div>
       </div>
     </section>
   )

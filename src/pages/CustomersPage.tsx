@@ -1,6 +1,7 @@
 import { clsx } from 'clsx'
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import {
   customerDirectory,
@@ -59,11 +60,22 @@ const tierTextColor: Record<CustomerHealthTier, string> = {
   critical: 'text-[color:var(--color-chart-critical)]',
 }
 
-function CustomerCard({ customer }: { customer: CustomerProfile }) {
+function CustomerCard({ customer, onOpen }: { customer: CustomerProfile; onOpen: (customer: CustomerProfile) => void }) {
   const tier = customerHealthTier(customer.healthScore)
 
   return (
-    <Card className="relative min-w-0 overflow-hidden p-4 transition-shadow hover:shadow-md">
+    <Card
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpen(customer)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onOpen(customer)
+        }
+      }}
+      className="relative min-w-0 cursor-pointer overflow-hidden p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+    >
       <StatusCorner tier={tier} />
 
       <div className="relative flex items-start justify-between gap-3">
@@ -143,6 +155,7 @@ type TypeFilter = 'All' | CustomerAccountType
 type TierFilter = 'All' | CustomerHealthTier
 
 export function CustomersPage() {
+  const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('All')
   const [tierFilter, setTierFilter] = useState<TierFilter>('All')
@@ -214,7 +227,11 @@ export function CustomersPage() {
 
         <div className="mt-4 grid grid-cols-1 gap-4 @lg:grid-cols-2 @4xl:grid-cols-3">
           {rows.map((customer) => (
-            <CustomerCard key={customer.id} customer={customer} />
+            <CustomerCard
+              key={customer.id}
+              customer={customer}
+              onOpen={(c) => navigate(`/customer-intelligence/overview/${c.id}`)}
+            />
           ))}
           {rows.length === 0 && (
             <p className="col-span-full py-10 text-center text-sm text-ink-muted">No customers match this filter.</p>

@@ -102,6 +102,56 @@ export const aiExecutiveSummary = {
   generatedAt: '18 May 2025, 09:30 AM',
 }
 
+export const revenueTrend = {
+  yoyGrowth: 12,
+  currentYearTotal: '₹8.75 Cr',
+  previousYearTotal: '₹7.81 Cr',
+  points: [38, 42, 40, 46, 50, 48, 54, 58, 55, 60, 64, 68],
+  months: [
+    'Jun \'24', 'Jul \'24', 'Aug \'24', 'Sep \'24', 'Oct \'24', 'Nov \'24',
+    'Dec \'24', 'Jan \'25', 'Feb \'25', 'Mar \'25', 'Apr \'25', 'May \'25',
+  ],
+  quarters: [
+    { label: 'Q1 FY25', value: '₹2.02 Cr', deltaLabel: '+9% YoY' },
+    { label: 'Q2 FY25', value: '₹2.15 Cr', deltaLabel: '+11% YoY' },
+    { label: 'Q3 FY25', value: '₹2.19 Cr', deltaLabel: '+13% YoY' },
+    { label: 'Q4 FY25', value: '₹2.39 Cr', deltaLabel: '+15% YoY' },
+  ],
+}
+
+export type PaymentRecord = {
+  id: string
+  date: string
+  invoiceNo: string
+  amount: string
+  method: string
+  status: 'Cleared' | 'Pending' | 'Failed'
+}
+
+export const paymentHistory: PaymentRecord[] = [
+  { id: 'pay-1', date: '12 May 2025', invoiceNo: 'INV-88213', amount: '₹24.60 L', method: 'NEFT', status: 'Cleared' },
+  { id: 'pay-2', date: '28 Apr 2025', invoiceNo: 'INV-88104', amount: '₹18.20 L', method: 'RTGS', status: 'Cleared' },
+  { id: 'pay-3', date: '11 Apr 2025', invoiceNo: 'INV-87991', amount: '₹9.40 L', method: 'Cheque', status: 'Cleared' },
+  { id: 'pay-4', date: '30 Mar 2025', invoiceNo: 'INV-87850', amount: '₹15.75 L', method: 'NEFT', status: 'Cleared' },
+  { id: 'pay-5', date: '14 Mar 2025', invoiceNo: 'INV-87766', amount: '₹6.30 L', method: 'UPI', status: 'Pending' },
+  { id: 'pay-6', date: '27 Feb 2025', invoiceNo: 'INV-87602', amount: '₹21.10 L', method: 'RTGS', status: 'Cleared' },
+  { id: 'pay-7', date: '09 Feb 2025', invoiceNo: 'INV-87511', amount: '₹4.85 L', method: 'Cheque', status: 'Failed' },
+]
+
+export type InvoiceDispute = {
+  id: string
+  invoiceNo: string
+  amount: string
+  reason: string
+  raisedOn: string
+  status: 'Open' | 'Under Review' | 'Resolved'
+}
+
+export const invoiceDisputes: InvoiceDispute[] = [
+  { id: 'disp-1', invoiceNo: 'INV-86230', amount: '₹3.20 L', reason: 'Quantity mismatch on delivery', raisedOn: '02 Feb 2025', status: 'Resolved' },
+  { id: 'disp-2', invoiceNo: 'INV-87004', amount: '₹1.85 L', reason: 'Pricing discrepancy vs. PO', raisedOn: '19 Mar 2025', status: 'Resolved' },
+]
+
 export type RecommendedAction = {
   id: string
   title: string
