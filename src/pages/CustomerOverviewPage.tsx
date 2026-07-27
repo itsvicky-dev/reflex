@@ -416,6 +416,17 @@ export function CustomerOverviewPage() {
   const overdueDisplay = customer ? (customer.overdueAmount > 0 ? sgd(customer.overdueAmount) : '—') : '—'
   const upcomingDisplay = customer ? (customer.upcomingAmount > 0 ? sgd(customer.upcomingAmount) : '—') : customerOverviewStats.availableCredit
 
+  const profileCardRef = useRef<HTMLDivElement>(null)
+  const [profileCardHeight, setProfileCardHeight] = useState(0)
+
+  useEffect(() => {
+    const el = profileCardRef.current
+    if (!el) return
+    const observer = new ResizeObserver((entries) => setProfileCardHeight(entries[0].contentRect.height))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   const [activeSection, setActiveSection] = useState<SectionId>('summary')
 
   useEffect(() => {
@@ -447,7 +458,7 @@ export function CustomerOverviewPage() {
 
   return (
     <section className="@container space-y-4">
-      <div className="flex flex-col gap-1 @lg:flex-row @lg:items-center @lg:justify-between">
+      {/* <div className="flex flex-col gap-1 @lg:flex-row @lg:items-center @lg:justify-between">
         <div>
           <h1 className="text-lg font-semibold text-heading">Customer 360</h1>
           <p className="mt-0.5 text-xs text-ink-muted">
@@ -460,9 +471,15 @@ export function CustomerOverviewPage() {
         <Button variant="white" size="sm">
           Actions
         </Button>
-      </div>
+      </div> */}
 
-      <Card className={clsx('relative min-w-0 overflow-hidden bg-gradient-to-br p-5', tierStripGradient[tier])}>
+      {/* Masks the scroll container's own top padding so content scrolling underneath the sticky card below can't peek through that gap. */}
+      <div className="sticky -top-6 -mx-6 -mt-6 h-6 bg-app-bg" aria-hidden />
+
+      <Card
+        ref={profileCardRef}
+        className={clsx('sticky top-0 z-20 min-w-0 overflow-hidden bg-gradient-to-br p-5 shadow-md', tierStripGradient[tier])}
+      >
         <div className="relative flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-base font-bold text-white">
@@ -491,9 +508,12 @@ export function CustomerOverviewPage() {
       </Card>
 
       <div className="grid grid-cols-1 gap-4 @4xl:grid-cols-[220px_minmax(0,1fr)] @4xl:items-start">
-        <Card className="min-w-0 p-2 @4xl:sticky @4xl:top-6">
+        <div
+          className="min-w-0 p-2 @4xl:sticky"
+          style={{ top: profileCardHeight ? profileCardHeight + 44 : 136 }}
+        >
           <SectionNav activeId={activeSection} onNavigate={goToSection} />
-        </Card>
+        </div>
 
         <div className="min-w-0 space-y-4">
           <Card id="summary" className="min-w-0 scroll-mt-6 p-5">

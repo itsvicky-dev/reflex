@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import finPilotIcon from '../assets/icons/fin-pilot.svg'
+import { CashFlowSankeyChart } from '../components/ai/charts/CashFlowSankeyChart'
 import { RiskMatrixChart } from '../components/ai/charts/RiskMatrixChart'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -30,12 +31,15 @@ import { IconButton } from '../components/ui/IconButton'
 import {
   aiExplanation,
   cashFlowForecast,
+  cashFlowVisualization,
   collectionsSummary,
   customerRiskMatrix,
   finPilotStats,
+  outstandingDelayTrend,
   revenueTrend,
   type CashFlowPoint,
   type FinPilotStat,
+  type OutstandingDelayPoint,
   type RevenueWeek,
   type RootCause,
   type StatTrendPoint,
@@ -572,6 +576,200 @@ function RiskMatrixCard() {
   )
 }
 
+function CashFlowMiniCard() {
+  return (
+    <div className="space-y-4">
+      <CardHeader icon={<TrendingUp className="h-4 w-4" />} eyebrow="Fin Pilot" title="Cash Flow Forecast" tone="success" />
+      <Card className="min-w-0 p-5">
+        <p className="mb-1 text-sm font-medium text-heading">7-Day Cash Flow Forecast</p>
+        <CashFlowChart points={cashFlowForecast.points} />
+      </Card>
+    </div>
+  )
+}
+
+function RevenueMiniCard() {
+  return (
+    <div className="space-y-4">
+      <CardHeader icon={<LineChartIcon className="h-4 w-4" />} eyebrow="Fin Pilot" title="Revenue" tone="accent" />
+      <Card className="min-w-0 p-5">
+        <p className="mb-1 text-sm font-medium text-heading">Revenue Trend</p>
+        <div className="mb-2 flex flex-wrap items-center gap-4 text-xs text-ink-muted">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-accent" />
+            {revenueTrend.currentLabel}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full border-2 border-border" />
+            {revenueTrend.previousLabel}
+          </span>
+        </div>
+        <RevenueTrendChart weeks={revenueTrend.weeks} yMax={revenueTrend.yMax} />
+      </Card>
+    </div>
+  )
+}
+
+const trendSeriesColor = {
+  outstanding: 'var(--color-chart-series-1)',
+  delay: 'var(--color-chart-series-2)',
+}
+
+function OutstandingDelayTrendChart({ points }: { points: OutstandingDelayPoint[] }) {
+  const width = 1200
+  const height = 220
+  const pad = { top: 16, right: 16, bottom: 22, left: 12 }
+  const plotW = width - pad.left - pad.right
+  const plotH = height - pad.top - pad.bottom
+  const n = points.length
+  const colW = plotW / n
+
+  const outstandingBase = points[0].outstandingCr
+  const delayBase = points[0].delayDays
+  const outstandingIndex = points.map((p) => (p.outstandingCr / outstandingBase) * 100)
+  const delayIndex = points.map((p) => (p.delayDays / delayBase) * 100)
+  const max = Math.max(...outstandingIndex, ...delayIndex) * 1.1
+
+  const xAt = (index: number) => pad.left + (index / (n - 1)) * plotW
+  const yAt = (value: number) => pad.top + plotH - (value / max) * plotH
+  const pathFor = (values: number[]) => values.map((v, i) => `${i === 0 ? 'M' : 'L'}${xAt(i)},${yAt(v)}`).join(' ')
+
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
+  const hovered = hoverIndex !== null ? points[hoverIndex] : null
+
+  return (
+    <div className="relative">
+      <div className="mb-2 flex flex-wrap items-center gap-4 text-[11px] text-ink-muted">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: trendSeriesColor.outstanding }} />
+          {outstandingDelayTrend.outstandingSeriesLabel}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: trendSeriesColor.delay }} />
+          {outstandingDelayTrend.delaySeriesLabel}
+        </span>
+      </div>
+
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" onMouseLeave={() => setHoverIndex(null)}>
+        <path d={pathFor(outstandingIndex)} fill="none" stroke={trendSeriesColor.outstanding} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        <path d={pathFor(delayIndex)} fill="none" stroke={trendSeriesColor.delay} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+
+        {hoverIndex !== null && (
+          <line x1={xAt(hoverIndex)} x2={xAt(hoverIndex)} y1={pad.top} y2={pad.top + plotH} stroke="var(--color-chart-baseline)" strokeWidth={1} strokeDasharray="3 3" />
+        )}
+
+        {points.map((p, i) => (
+          <g key={p.label}>
+            <circle cx={xAt(i)} cy={yAt(outstandingIndex[i])} r={3} fill={trendSeriesColor.outstanding} />
+            <circle cx={xAt(i)} cy={yAt(delayIndex[i])} r={3} fill={trendSeriesColor.delay} />
+            <text x={xAt(i)} y={height - 6} textAnchor="middle" fontSize={9} fill="var(--color-ink-muted)">
+              {p.label}
+            </text>
+            <rect
+              x={xAt(i) - colW / 2}
+              y={pad.top}
+              width={colW}
+              height={plotH}
+              fill="transparent"
+              onMouseEnter={() => setHoverIndex(i)}
+            />
+          </g>
+        ))}
+      </svg>
+
+      {hovered && (
+        <div
+          className="pointer-events-none absolute z-10 min-w-[150px] -translate-x-1/2 rounded-lg border border-border bg-surface px-2.5 py-2 text-[11px] shadow-md"
+          style={{ left: `${(xAt(hoverIndex!) / width) * 100}%`, top: 0 }}
+        >
+          <p className="mb-1 font-medium text-heading">{hovered.label}</p>
+          <div className="space-y-0.5 text-ink-muted">
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: trendSeriesColor.outstanding }} />
+                Outstanding
+              </span>
+              <span className="font-medium text-heading">₹{hovered.outstandingCr.toFixed(1)} Cr</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: trendSeriesColor.delay }} />
+                Delay
+              </span>
+              <span className="font-medium text-heading">{hovered.delayDays} days</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function OutstandingDelayTrendCard() {
+  const { points, insight } = outstandingDelayTrend
+
+  return (
+    <div className="space-y-4">
+      <CardHeader icon={<AlertTriangle className="h-4 w-4" />} eyebrow="Fin Pilot" title="Outstanding vs. Payment Delay Trend" tone="accent" />
+      <Card className="flex min-w-0 flex-col gap-4 p-5">
+        <div className="min-w-0">
+          <p className="mb-1 text-sm font-medium text-heading">Outstanding Amount vs. Payment Delay Trend</p>
+          <p className="mb-3 text-xs text-ink-muted">{outstandingDelayTrend.subtitle}</p>
+          <OutstandingDelayTrendChart points={points} />
+        </div>
+
+        <div className="flex min-w-0 items-start gap-2 border-t border-border pt-3">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+          <p className="text-xs leading-relaxed text-ink-muted">
+            <span className="font-medium text-accent">AI Insight — </span>
+            {insight.lead} <span className="font-semibold text-heading">{insight.highlight}</span>, {insight.tail}
+          </p>
+        </div>
+      </Card>
+    </div>
+  )
+}
+
+function CashFlowVisualizationCard() {
+  const { subtitle, color, legend, sources, destinations, links } = cashFlowVisualization
+
+  return (
+    <div className="space-y-4">
+      <CardHeader icon={<TrendingUp className="h-4 w-4" />} eyebrow="Fin Pilot" title="Cash Flow Visualization" tone="success" />
+      <Card className="min-w-0 p-5">
+        <div className="flex flex-col gap-3 @sm:flex-row @sm:items-center @sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-heading">Bank Receipts → Reconciliation Outcome</p>
+            <p className="mt-0.5 text-xs text-ink-muted">{subtitle}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button type="button" variant="outline" size="sm">
+              <Filter className="h-3.5 w-3.5" />
+              Filter
+            </Button>
+            <IconButton aria-label="More options" className="h-8 w-8">
+              <MoreVertical className="h-3.5 w-3.5" />
+            </IconButton>
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-ink-muted">
+          {legend.map((item) => (
+            <span key={item.id} className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color, opacity: item.opacity }} />
+              {item.label}
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-4">
+          <CashFlowSankeyChart color={color} sources={sources} destinations={destinations} links={links} />
+        </div>
+      </Card>
+    </div>
+  )
+}
+
 function StatsFilterBar() {
   return (
     <div className='bg-white p-3 rounded-md '>
@@ -730,12 +928,14 @@ export function FinPilotPage() {
         <StatTrendPanel stat={selectedStat} />
       </div>
 
-      <CashFlowCard />
+      {/* <CashFlowCard />
       <RevenueTrendCard />
 
       <div className="">
         <RiskMatrixCard />
-      </div>
+      </div> */}
+
+      <CashFlowVisualizationCard />
     </section>
   )
 }

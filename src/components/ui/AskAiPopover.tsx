@@ -17,6 +17,7 @@ export function AskAiPopover({ contextLabel, suggestions = defaultSuggestions, c
   const [message, setMessage] = useState('')
   const containerRef = useRef<HTMLDivElement>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  const inputRef = useRef<HTMLInputElement>(null)
   const { sendMessage } = useAiChat()
   const { setAiPanelOpen } = useLayout()
 
@@ -50,6 +51,11 @@ export function AskAiPopover({ contextLabel, suggestions = defaultSuggestions, c
     sendMessage(text, contextLabel)
     setAiPanelOpen(true)
     setOpen(false)
+  }
+
+  function fillField(text: string) {
+    setMessage(text)
+    inputRef.current?.focus()
   }
 
   return (
@@ -103,7 +109,7 @@ export function AskAiPopover({ contextLabel, suggestions = defaultSuggestions, c
               <button
                 key={item}
                 type="button"
-                onClick={() => submit(item)}
+                onClick={() => fillField(item)}
                 className="w-full rounded-lg border border-white/25 bg-white/10 px-2.5 py-1.5 text-left text-[11px] text-black transition hover:border-accent/30 hover:bg-accent/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-accent/10"
               >
                 {item}
@@ -119,6 +125,7 @@ export function AskAiPopover({ contextLabel, suggestions = defaultSuggestions, c
             className="relative m-3.5 mt-3 flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-2 py-1.5 dark:border-white/10 dark:bg-white/5"
           >
             <input
+              ref={inputRef}
               autoFocus
               value={message}
               onChange={(event) => setMessage(event.target.value)}

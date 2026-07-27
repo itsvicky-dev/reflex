@@ -1,6 +1,7 @@
 import { clsx } from 'clsx'
 import {
   ArrowUp,
+  ArrowUpRight,
   BanknoteX,
   CalendarMinus,
   ChartLine,
@@ -298,7 +299,7 @@ export function ReflexAiPage() {
 
               {/* Suggestions sit outside the composer's border; hovering one
                   previews its prompt inside the textarea above without committing it. */}
-              <div className="w-full space-y-0.5 max-w-lg">
+              <div className="w-full space-y-0.5">
                 {SUGGESTIONS.map((suggestion) => (
                   <button
                     key={suggestion.label}
@@ -311,7 +312,7 @@ export function ReflexAiPage() {
                       setMessage(suggestion.label)
                       setHoveredSuggestion(null)
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition hover:bg-surface-hover"
+                    className="group flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition hover:bg-surface-hover"
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F4F5F6] text-ink">
                       <suggestion.icon className="h-4 w-4" />
@@ -320,8 +321,13 @@ export function ReflexAiPage() {
                       <span className="block truncate text-sm text-ink">{suggestion.label}</span>
                       <span className="block text-xs text-ink-muted">{suggestion.category}</span>
                     </span>
-                    <span className="shrink-0 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-ink">
-                      Ask
+                    <span
+                      className={clsx(
+                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-ink-muted opacity-0 transition group-hover:opacity-100',
+                        hoveredSuggestion === suggestion.label && 'opacity-100',
+                      )}
+                    >
+                      <ArrowUpRight className="h-4 w-4" />
                     </span>
                   </button>
                 ))}

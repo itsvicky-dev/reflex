@@ -219,6 +219,33 @@ export const customerRiskMatrix = {
   } satisfies RiskMatrixChartData,
 }
 
+export type OutstandingDelayPoint = {
+  label: string
+  outstandingCr: number
+  delayDays: number
+}
+
+export const outstandingDelayTrend = {
+  subtitle: 'Both series indexed to Week 1 = 100 so they can be compared on a single scale.',
+  outstandingSeriesLabel: 'Outstanding Amount',
+  delaySeriesLabel: 'Payment Delay',
+  points: [
+    { label: 'Wk 1', outstandingCr: 10.2, delayDays: 42 },
+    { label: 'Wk 2', outstandingCr: 11.4, delayDays: 48 },
+    { label: 'Wk 3', outstandingCr: 12.8, delayDays: 55 },
+    { label: 'Wk 4', outstandingCr: 13.5, delayDays: 58 },
+    { label: 'Wk 5', outstandingCr: 14.9, delayDays: 64 },
+    { label: 'Wk 6', outstandingCr: 15.2, delayDays: 70 },
+    { label: 'Wk 7', outstandingCr: 15.8, delayDays: 78 },
+    { label: 'Wk 8', outstandingCr: 15.8, delayDays: 95 },
+  ] satisfies OutstandingDelayPoint[],
+  insight: {
+    lead: 'Payment delay is growing faster than outstanding amount, up',
+    highlight: '126% vs. Week 1',
+    tail: 'while outstanding amount has grown only 55% — a sign accounts are stretching repayment timelines rather than adding new exposure.',
+  },
+}
+
 export type RootCause = {
   id: string
   icon: 'users' | 'cart' | 'clock' | 'tag'
@@ -227,6 +254,62 @@ export type RootCause = {
   title: string
   description: string
   delta: string
+}
+
+export type CashFlowVisNode = {
+  id: string
+  label: string
+  valueCr: number
+  displayValue: string
+  opacity?: number
+}
+
+export type CashFlowVisLink = {
+  source: string
+  target: string
+  valueCr: number
+  opacity: number
+}
+
+// Single hue, flat subtle wash — hover reveals which flow is which.
+const FLOW_BLUE = 'var(--color-chart-series-1)'
+
+export const cashFlowVisualization = {
+  subtitle: 'AI distributes incoming bank receipts into reconciliation outcomes.',
+  color: FLOW_BLUE,
+  legend: [
+    { id: 'auto-matched', label: 'Auto Matched', opacity: 0.18 },
+    { id: 'partial-match', label: 'Partial Match', opacity: 0.18 },
+    { id: 'ai-suggested', label: 'AI Suggested Match', opacity: 0.18 },
+    { id: 'manual-review', label: 'Manual Review', opacity: 0.18 },
+    { id: 'unidentified', label: 'Unidentified Payments', opacity: 0.18 },
+  ],
+  sources: [
+    { id: 'hdfc', label: 'HDFC Bank', valueCr: 2.4, displayValue: '₹2.4 Cr' },
+    { id: 'icici', label: 'ICICI Bank', valueCr: 1.8, displayValue: '₹1.8 Cr' },
+    { id: 'hsbc', label: 'HSBC', valueCr: 0.95, displayValue: '₹95 L' },
+    { id: 'citibank', label: 'Citibank', valueCr: 0.72, displayValue: '₹72 L' },
+    { id: 'upi-rtgs-neft', label: 'UPI / RTGS / NEFT', valueCr: 0.38, displayValue: '₹38 L' },
+  ] satisfies CashFlowVisNode[],
+  destinations: [
+    { id: 'auto-matched', label: 'Auto Matched', valueCr: 3.1, displayValue: '₹3.10 Cr', opacity: 0.18 },
+    { id: 'partial-match', label: 'Partial Match', valueCr: 1.15, displayValue: '₹1.15 Cr', opacity: 0.18 },
+    { id: 'ai-suggested', label: 'AI Suggested Match', valueCr: 1.0, displayValue: '₹1.00 Cr', opacity: 0.18 },
+    { id: 'manual-review', label: 'Manual Review', valueCr: 0.65, displayValue: '₹65 L', opacity: 0.18 },
+    { id: 'unidentified', label: 'Unidentified Payments', valueCr: 0.35, displayValue: '₹35 L', opacity: 0.18 },
+  ] satisfies CashFlowVisNode[],
+  links: [
+    { source: 'hdfc', target: 'auto-matched', valueCr: 2.0, opacity: 0.18 },
+    { source: 'hdfc', target: 'ai-suggested', valueCr: 0.4, opacity: 0.18 },
+    { source: 'icici', target: 'auto-matched', valueCr: 1.1, opacity: 0.18 },
+    { source: 'icici', target: 'partial-match', valueCr: 0.7, opacity: 0.18 },
+    { source: 'hsbc', target: 'ai-suggested', valueCr: 0.6, opacity: 0.18 },
+    { source: 'hsbc', target: 'manual-review', valueCr: 0.35, opacity: 0.18 },
+    { source: 'citibank', target: 'partial-match', valueCr: 0.45, opacity: 0.18 },
+    { source: 'citibank', target: 'manual-review', valueCr: 0.27, opacity: 0.18 },
+    { source: 'upi-rtgs-neft', target: 'unidentified', valueCr: 0.35, opacity: 0.18 },
+    { source: 'upi-rtgs-neft', target: 'manual-review', valueCr: 0.03, opacity: 0.18 },
+  ] satisfies CashFlowVisLink[],
 }
 
 export const aiExplanation = {

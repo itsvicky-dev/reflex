@@ -13,8 +13,10 @@ import {
   FileText,
   Info,
   Landmark,
+  LineChart as LineChartIcon,
   RefreshCcw,
   TrendingDown,
+  TrendingUp,
   Users2,
   Wallet,
   type LucideIcon,
@@ -22,6 +24,7 @@ import {
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
+import { RiskMatrixChart } from '../components/ai/charts/RiskMatrixChart'
 import { AskAiPopover } from '../components/ui/AskAiPopover'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -47,6 +50,15 @@ import {
   type AttentionItem,
   type ReconciliationPeriodFilter,
 } from '../data/mockReconciliationHub'
+import {
+  cashFlowForecast,
+  customerRiskMatrix,
+  outstandingDelayTrend,
+  revenueTrend,
+  type CashFlowPoint,
+  type OutstandingDelayPoint,
+  type RevenueWeek,
+} from '../data/mockFinPilot'
 import { recentActivityTone } from '../lib/status'
 
 const USER_FIRST_NAME = 'Praburaju'
@@ -201,6 +213,237 @@ function RecentActivityTable({ items }: { items: RecentActivityItem[] }) {
           ))}
         </tbody>
       </table>
+    </div>
+  )
+}
+
+function CashFlowChart({ points }: { points: CashFlowPoint[] }) {
+  const width = 560
+  const height = 180
+  const pad = { top: 26, right: 12, bottom: 22, left: 12 }
+  const plotW = width - pad.left - pad.right
+  const plotH = height - pad.top - pad.bottom
+  const max = Math.max(...points.map((p) => p.value)) * 1.2
+  const n = points.length
+
+  const xAt = (index: number) => pad.left + (index / (n - 1)) * plotW
+  const yAt = (value: number) => pad.top + plotH - (value / max) * plotH
+
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${xAt(i)},${yAt(p.value)}`).join(' ')
+  const areaPath = `${linePath} L${xAt(n - 1)},${pad.top + plotH} L${xAt(0)},${pad.top + plotH} Z`
+
+  const forecastStart = points.findIndex((p) => p.forecast)
+  const peakIndex = points.reduce((best, p, i) => (p.value > points[best].value ? i : best), 0)
+
+  return (
+    <div>
+      {forecastStart !== -1 && (
+        <div
+          className="mb-1 flex items-center justify-center gap-1.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400"
+          style={{
+            marginLeft: `${(xAt(forecastStart) / width) * 100}%`,
+            marginRight: `${((width - xAt(n - 1)) / width) * 100}%`,
+          }}
+        >
+          <span className="h-px flex-1 bg-emerald-500/40" />
+          Forecast
+          <span className="h-px flex-1 bg-emerald-500/40" />
+        </div>
+      )}
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full">
+        <defs>
+          <linearGradient id="home-cashflow-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgb(16 185 129)" stopOpacity={0.28} />
+            <stop offset="100%" stopColor="rgb(16 185 129)" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+
+        <path d={areaPath} fill="url(#home-cashflow-fill)" />
+        <path d={linePath} fill="none" stroke="rgb(16 185 129)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+
+        {points.map((p, i) => {
+          const anchor = i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'
+          return (
+            <g key={p.date}>
+              <circle cx={xAt(i)} cy={yAt(p.value)} r={i === peakIndex ? 4 : 3} fill="rgb(16 185 129)" />
+              <text
+                x={xAt(i)}
+                y={yAt(p.value) - 10}
+                textAnchor={anchor}
+                fontSize={10}
+                fontWeight={i === peakIndex ? 700 : 500}
+                fill={i === peakIndex ? 'rgb(5 150 105)' : 'var(--color-heading)'}
+              >
+                ₹{p.value.toFixed(2)} Cr
+              </text>
+              <text x={xAt(i)} y={height - 8} textAnchor={anchor} fontSize={9} fill="var(--color-ink-muted)">
+                {p.date}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+      <div className="mt-0.5 flex justify-between text-[9px] text-ink-muted">
+        {points.map((p) => (
+          <span key={p.date} className={clsx(p.forecast && p.value === points[peakIndex].value && 'font-medium text-emerald-600 dark:text-emerald-400')}>
+            {p.day}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function RevenueTrendChart({ weeks, yMax }: { weeks: RevenueWeek[]; yMax: number }) {
+  const width = 620
+  const height = 220
+  const pad = { top: 16, right: 8, bottom: 8, left: 30 }
+  const plotW = width - pad.left - pad.right
+  const plotH = height - pad.top - pad.bottom
+  const n = weeks.length
+  const groupW = plotW / n
+  const barW = groupW * 0.26
+  const gap = groupW * 0.06
+
+  const yAt = (value: number) => pad.top + plotH - (value / yMax) * plotH
+  const yTicks = Array.from({ length: yMax + 1 }, (_, i) => i)
+
+  return (
+    <div>
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full">
+        {yTicks.map((tick) => (
+          <g key={tick}>
+            <line x1={pad.left} x2={width - pad.right} y1={yAt(tick)} y2={yAt(tick)} stroke="var(--color-border)" strokeWidth={1} />
+            <text x={pad.left - 8} y={yAt(tick) + 3} textAnchor="end" fontSize={10} fill="var(--color-ink-muted)">
+              {tick === 0 ? '0' : `${tick} Cr`}
+            </text>
+          </g>
+        ))}
+
+        {weeks.map((week, i) => {
+          const groupX = pad.left + i * groupW
+          const bar1X = groupX + groupW * 0.16
+          const bar2X = bar1X + barW + gap
+          const baseY = yAt(0)
+          const curY = yAt(week.current)
+          const prevY = yAt(week.previous)
+          return (
+            <g key={week.label}>
+              <rect x={bar1X} y={curY} width={barW} height={baseY - curY} rx={3} fill="var(--color-accent)" />
+              <text x={bar1X + barW / 2} y={curY - 8} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--color-heading)">
+                ₹{week.current.toFixed(2)} Cr
+              </text>
+              <rect x={bar2X} y={prevY} width={barW} height={baseY - prevY} rx={3} fill="var(--color-border)" />
+              <text x={bar2X + barW / 2} y={prevY - 8} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--color-heading)">
+                ₹{week.previous.toFixed(2)} Cr
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+      <div className="flex">
+        {weeks.map((week) => (
+          <div key={week.label} className="flex-1 text-center text-xs">
+            <p className="font-medium text-heading">{week.label}</p>
+            <p className="text-[11px] text-ink-muted">{week.range}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const trendSeriesColor = {
+  outstanding: 'var(--color-chart-series-1)',
+  delay: 'var(--color-chart-series-2)',
+}
+
+function OutstandingDelayTrendChart({ points }: { points: OutstandingDelayPoint[] }) {
+  const width = 1200
+  const height = 220
+  const pad = { top: 16, right: 16, bottom: 22, left: 12 }
+  const plotW = width - pad.left - pad.right
+  const plotH = height - pad.top - pad.bottom
+  const n = points.length
+  const colW = plotW / n
+
+  const outstandingBase = points[0].outstandingCr
+  const delayBase = points[0].delayDays
+  const outstandingIndex = points.map((p) => (p.outstandingCr / outstandingBase) * 100)
+  const delayIndex = points.map((p) => (p.delayDays / delayBase) * 100)
+  const max = Math.max(...outstandingIndex, ...delayIndex) * 1.1
+
+  const xAt = (index: number) => pad.left + (index / (n - 1)) * plotW
+  const yAt = (value: number) => pad.top + plotH - (value / max) * plotH
+  const pathFor = (values: number[]) => values.map((v, i) => `${i === 0 ? 'M' : 'L'}${xAt(i)},${yAt(v)}`).join(' ')
+
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
+  const hovered = hoverIndex !== null ? points[hoverIndex] : null
+
+  return (
+    <div className="relative">
+      <div className="mb-2 flex flex-wrap items-center gap-4 text-[11px] text-ink-muted">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: trendSeriesColor.outstanding }} />
+          {outstandingDelayTrend.outstandingSeriesLabel}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: trendSeriesColor.delay }} />
+          {outstandingDelayTrend.delaySeriesLabel}
+        </span>
+      </div>
+
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" onMouseLeave={() => setHoverIndex(null)}>
+        <path d={pathFor(outstandingIndex)} fill="none" stroke={trendSeriesColor.outstanding} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        <path d={pathFor(delayIndex)} fill="none" stroke={trendSeriesColor.delay} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+
+        {hoverIndex !== null && (
+          <line x1={xAt(hoverIndex)} x2={xAt(hoverIndex)} y1={pad.top} y2={pad.top + plotH} stroke="var(--color-chart-baseline)" strokeWidth={1} strokeDasharray="3 3" />
+        )}
+
+        {points.map((p, i) => (
+          <g key={p.label}>
+            <circle cx={xAt(i)} cy={yAt(outstandingIndex[i])} r={3} fill={trendSeriesColor.outstanding} />
+            <circle cx={xAt(i)} cy={yAt(delayIndex[i])} r={3} fill={trendSeriesColor.delay} />
+            <text x={xAt(i)} y={height - 6} textAnchor="middle" fontSize={9} fill="var(--color-ink-muted)">
+              {p.label}
+            </text>
+            <rect
+              x={xAt(i) - colW / 2}
+              y={pad.top}
+              width={colW}
+              height={plotH}
+              fill="transparent"
+              onMouseEnter={() => setHoverIndex(i)}
+            />
+          </g>
+        ))}
+      </svg>
+
+      {hovered && (
+        <div
+          className="pointer-events-none absolute z-10 min-w-[150px] -translate-x-1/2 rounded-lg border border-border bg-surface px-2.5 py-2 text-[11px] shadow-md"
+          style={{ left: `${(xAt(hoverIndex!) / width) * 100}%`, top: 0 }}
+        >
+          <p className="mb-1 font-medium text-heading">{hovered.label}</p>
+          <div className="space-y-0.5 text-ink-muted">
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: trendSeriesColor.outstanding }} />
+                Outstanding
+              </span>
+              <span className="font-medium text-heading">₹{hovered.outstandingCr.toFixed(1)} Cr</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: trendSeriesColor.delay }} />
+                Delay
+              </span>
+              <span className="font-medium text-heading">{hovered.delayDays} days</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -563,6 +806,108 @@ export function HomePage() {
           </div>
         </Card>
       </div>
+
+      <div className="grid gap-4 @2xl:grid-cols-2">
+        <Card className="flex min-w-0 flex-col p-4">
+          <CardHeader
+            icon={TrendingUp}
+            title="7-Day Cash Flow Forecast"
+            aiSuggestions={['When will cash inflow peak?', 'Compare with previous 7 days', 'Summarize this forecast']}
+          />
+          <div className="mt-3">
+            <CashFlowChart points={cashFlowForecast.points} />
+          </div>
+        </Card>
+
+        <Card className="flex min-w-0 flex-col p-4">
+          <CardHeader
+            icon={LineChartIcon}
+            title="Revenue"
+            aiSuggestions={['Why did revenue decline this period?', 'Compare with the previous period', 'Summarize this chart']}
+          />
+          <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-ink-muted">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-accent" />
+              {revenueTrend.currentLabel}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full border-2 border-border" />
+              {revenueTrend.previousLabel}
+            </span>
+          </div>
+          <div className="mt-2">
+            <RevenueTrendChart weeks={revenueTrend.weeks} yMax={revenueTrend.yMax} />
+          </div>
+        </Card>
+      </div>
+
+      <Card className="flex min-w-0 flex-col p-4">
+        <CardHeader
+          icon={AlertTriangle}
+          title="Customer Risk Matrix"
+          aiSuggestions={['Which customers are highest risk?', 'Show accounts in the critical zone', 'Suggest collection priorities']}
+        />
+
+        <div className="mt-3 grid grid-cols-1 gap-5 @4xl:grid-cols-[1.3fr_1fr]">
+          <div className="min-w-0">
+            <p className="mb-1 text-sm font-medium text-heading">{customerRiskMatrix.chart.subtitle}</p>
+            <RiskMatrixChart chart={customerRiskMatrix.chart} />
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-4 @4xl:border-l @4xl:border-border @4xl:pl-5">
+            <div>
+              <p className="flex items-center gap-1.5 text-sm text-ink-muted">
+                Accounts in Critical Zone
+                <Info className="h-3.5 w-3.5" />
+              </p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-heading">{customerRiskMatrix.criticalAccountsCount}</p>
+              <p className="mt-1 text-xs font-semibold text-rose-600 dark:text-rose-400">{customerRiskMatrix.totalAtRiskCr} at risk of non-payment</p>
+            </div>
+
+            <div className="rounded-lg border border-border p-3 text-xs">
+              <p className="text-ink-muted">Top At-Risk Account</p>
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <span className="font-semibold text-heading">{customerRiskMatrix.topAccount.name}</span>
+                <span className="font-semibold text-rose-600 dark:text-rose-400">{customerRiskMatrix.topAccount.outstanding}</span>
+              </div>
+              <p className="mt-0.5 text-ink-muted">{customerRiskMatrix.topAccount.delayDays} days past due</p>
+            </div>
+
+            <div className="flex min-w-0 items-start gap-1.5">
+              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-muted" />
+              <p className="text-xs leading-relaxed text-ink-muted">
+                {customerRiskMatrix.insight.lead}{' '}
+                {customerRiskMatrix.insight.links.map((link, index) => (
+                  <span key={link}>
+                    <span className="font-medium text-accent">{link}</span>
+                    {index < customerRiskMatrix.insight.links.length - 1 ? ' and ' : '.'}
+                  </span>
+                ))}{' '}
+                {customerRiskMatrix.insight.detail}
+              </p>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* <Card className="flex min-w-0 flex-col p-4">
+        <CardHeader
+          icon={AlertTriangle}
+          title="Outstanding Amount vs. Payment Delay Trend"
+          aiSuggestions={['Why is payment delay growing faster?', 'Which weeks saw the biggest jump?', 'Summarize this trend']}
+        />
+        <p className="mt-1 text-xs text-ink-muted">{outstandingDelayTrend.subtitle}</p>
+        <div className="mt-3">
+          <OutstandingDelayTrendChart points={outstandingDelayTrend.points} />
+        </div>
+        <div className="mt-3 flex items-start gap-1.5 border-t border-border pt-3 text-xs text-ink-muted">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            {outstandingDelayTrend.insight.lead}{' '}
+            <span className="font-semibold text-heading">{outstandingDelayTrend.insight.highlight}</span>, {outstandingDelayTrend.insight.tail}
+          </span>
+        </div>
+      </Card> */}
     </section >
   )
 }

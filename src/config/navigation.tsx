@@ -59,7 +59,7 @@ export const topNav: NavLink[] = [
   { kind: 'link', to: '/home', label: 'Home', icon: HomeIcon },
   { kind: 'link', to: '/reflex-ai', label: 'Reflex AI', icon: Sparkles },
   { kind: 'link', to: '/finance-navigator', label: 'FinPilot', icon: imageIcon(finPilotIcon) },
-  { kind: 'link', to: '/control-tower', label: 'Control Tower', icon: TowerControl },
+  { kind: 'link', to: '/control-tower', label: 'Forecast Board', icon: TowerControl },
 ]
 
 export const quickAccess: { id: string; label: string; icon: LucideIcon }[] = [

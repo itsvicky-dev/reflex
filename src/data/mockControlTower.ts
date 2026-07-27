@@ -99,6 +99,30 @@ export const probabilityTone: Record<ProbabilityTier, BadgeTone> = {
   'not-expected': 'danger',
 }
 
+export type StatusBucket = 'committed' | 'probable' | 'possible' | 'doubtful'
+
+export const statusBucketOrder: StatusBucket[] = ['committed', 'probable', 'possible', 'doubtful']
+
+export const statusBucketLabel: Record<StatusBucket, string> = {
+  committed: 'Committed',
+  probable: 'Probable',
+  possible: 'Possible',
+  doubtful: 'Doubtful',
+}
+
+export const statusBucketTone: Record<StatusBucket, BadgeTone> = {
+  committed: 'success',
+  probable: 'accent',
+  possible: 'warning',
+  doubtful: 'danger',
+}
+
+export function suggestStatusBucket(row: ReceivableRow): StatusBucket {
+  if (row.probability === 'most-likely') return 'committed'
+  if (row.probability === 'likely') return row.value >= 0.5 ? 'probable' : 'possible'
+  return row.value >= 0.3 ? 'possible' : 'doubtful'
+}
+
 export type ReceivableRow = {
   id: string
   customer: string
