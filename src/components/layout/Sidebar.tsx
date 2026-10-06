@@ -380,7 +380,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
       <div className={clsx('flex items-center gap-2', collapsed ? 'justify-center px-2 py-2' : 'px-3 pt-2 pb-3')}>
         {!collapsed && (
           <>
-            <img src={Logo} className='w-5' />
+            <img src={Logo} className='w-8' />
             <OrgSwitcher />
           </>
         )}
