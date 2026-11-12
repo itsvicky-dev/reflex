@@ -49,6 +49,15 @@ export async function streamChat({ messages, knowledge, view, signal, onDelta }:
     throw new AiRequestError(message)
   }
 
+  // A real answer is an event stream. Anything else (an HTML page or an empty 200) means the request never reached the
+  // AI server, e.g. the app was published as a static site that has no /api/chat.
+  if (!(response.headers.get('content-type') ?? '').includes('text/event-stream')) {
+    console.error(
+      '[Reflex AI] /api/chat did not return an event stream. The app must run on the Node server (npm start) with OPENAI_API_KEY set; a static host cannot serve the AI API.',
+    )
+    throw new AiRequestError('Reflex AI is not available on this deployment yet: the AI service could not be reached.')
+  }
+
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''

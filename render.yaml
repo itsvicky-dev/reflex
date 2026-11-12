@@ -2,7 +2,7 @@
 # `npm start` serves the built SPA from ./dist and the /api/chat endpoint.
 services:
   - type: web
-    name: reconciliation
+    name: reflex-wele
     runtime: node
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm start

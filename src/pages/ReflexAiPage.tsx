@@ -337,7 +337,7 @@ export function ReflexAiPage() {
                 <PanelLeftOpen className="h-4 w-4" />
               </button>
             )}
-            <span className="shrink-0 text-ink-muted">Tan Jian Hao</span>
+            <span className="shrink-0 text-ink-muted">Abilash Kumar</span>
             <span className="shrink-0 text-ink-muted">/</span>
             <span className="truncate font-medium text-heading">{title}</span>
           </div>

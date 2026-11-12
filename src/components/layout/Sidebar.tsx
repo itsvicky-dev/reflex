@@ -14,7 +14,8 @@ import {
 } from '../../config/navigation'
 import { useLayout } from '../../context/LayoutContext'
 import { useResizableWidth } from '../../hooks/useResizableWidth'
-import Logo from '../../assets/images/logo.svg'
+// Single source for the brand mark: the same file is the browser-tab favicon (public/favicon.svg).
+import Logo from '../../../public/favicon.svg'
 import { SearchDialog } from './SearchDialog'
 
 const SIDEBAR_WIDTH_KEY = 'reconciliation.sidebar-width'
@@ -275,7 +276,7 @@ function UtilityIcon({ item }: { item: (typeof bottomUtility)[number] }) {
   )
 }
 
-const ORGANIZATIONS = ['Tan Jian Hao']
+const ORGANIZATIONS = ['Abilash Kumar']
 
 function OrgSwitcher() {
   const [open, setOpen] = useState(false)
@@ -380,7 +381,7 @@ export function Sidebar({ onOpenAiPanel, aiPanelOpen }: { onOpenAiPanel: () => v
       <div className={clsx('flex items-center gap-2', collapsed ? 'justify-center px-2 py-2' : 'px-3 pt-2 pb-3')}>
         {!collapsed && (
           <>
-            <img src={Logo} className='w-8' />
+            <img src={Logo} alt="Reflex" className='w-8' />
             <OrgSwitcher />
           </>
         )}

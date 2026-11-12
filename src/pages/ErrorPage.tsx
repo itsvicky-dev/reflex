@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, SearchX, ServerCrash } from 'lucide-react'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-dom'
-import Logo from '../assets/images/logo.svg'
+import Logo from '../../public/favicon.svg'
 import { Button } from '../components/ui/Button'
 
 type ErrorContent = {
