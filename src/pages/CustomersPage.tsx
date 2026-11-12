@@ -2,6 +2,8 @@ import { clsx } from 'clsx'
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAiPageState } from '../ai/useAiPageState'
+import { AskAiPopover } from '../components/ui/AskAiPopover'
 import { Card } from '../components/ui/Card'
 import {
   customerDirectory,
@@ -176,11 +178,22 @@ export function CustomersPage() {
     })
   }, [query, typeFilter, tierFilter])
 
+  useAiPageState('customers', {
+    filters: { search: query || undefined, accountType: typeFilter, healthTier: tierFilter },
+    customersShown: rows.map((customer) => `${customer.name} (${customer.code})`),
+  })
+
   return (
     <section className="@container space-y-4">
       <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-center @2xl:justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-heading">Customers</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-lg font-semibold text-heading">Customers</h1>
+            <AskAiPopover
+              contextLabel="Customers"
+              suggestions={['Rank customers by health score', 'Who is critical and what is the exposure?', 'Compare restaurants vs retail']}
+            />
+          </div>
           <p className="mt-0.5 text-xs text-ink-muted">
             {customerDirectory.length} customers · {counts.healthy} healthy · {counts.watch} watch · {counts.critical} critical
           </p>

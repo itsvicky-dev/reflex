@@ -21,9 +21,11 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useAiPageState } from '../ai/useAiPageState'
 import finPilotIcon from '../assets/icons/fin-pilot.svg'
 import { CashFlowSankeyChart } from '../components/ai/charts/CashFlowSankeyChart'
 import { RiskMatrixChart } from '../components/ai/charts/RiskMatrixChart'
+import { AskAiPopover } from '../components/ui/AskAiPopover'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
@@ -50,11 +52,13 @@ function CardHeader({
   eyebrow,
   title,
   tone,
+  ai,
 }: {
   icon: React.ReactNode
   eyebrow?: string
   title: string
   tone: 'accent' | 'success'
+  ai?: { label: string; suggestions: string[] }
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
@@ -78,7 +82,10 @@ function CardHeader({
               {eyebrow}
             </p>
           )}
-          <p className="truncate text-base font-semibold text-heading">{title}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-base font-semibold text-heading">{title}</p>
+            {ai && <AskAiPopover contextLabel={ai.label} suggestions={ai.suggestions} />}
+          </div>
         </div>
       </div>
       {/* <div className="flex shrink-0 items-center gap-1.5">
@@ -735,7 +742,16 @@ function CashFlowVisualizationCard() {
 
   return (
     <div className="space-y-4">
-      <CardHeader icon={<TrendingUp className="h-4 w-4" />} eyebrow="Fin Pilot" title="Cash Flow Visualization" tone="success" />
+      <CardHeader
+        icon={<TrendingUp className="h-4 w-4" />}
+        eyebrow="Fin Pilot"
+        title="Cash Flow Visualization"
+        tone="success"
+        ai={{
+          label: 'Cash Flow Visualization',
+          suggestions: ['Which bank has the weakest match rate?', 'Where is money stuck in manual review?', 'Summarise this flow as a table'],
+        }}
+      />
       <Card className="min-w-0 p-5">
         <div className="flex flex-col gap-3 @sm:flex-row @sm:items-center @sm:justify-between">
           <div className="min-w-0">
@@ -863,7 +879,15 @@ function StatTrendChart({ points }: { points: StatTrendPoint[] }) {
 function StatTrendPanel({ stat }: { stat: FinPilotStat }) {
   return (
     <div className="">
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-sm font-medium text-heading">
+          {stat.label}
+          <AskAiPopover
+            contextLabel={stat.label}
+            suggestions={[`Explain ${stat.label}`, 'What is driving this trend?', 'What should I do about it?']}
+          />
+        </div>
+        <div className="flex items-center gap-2">
         <button type="button" className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs text-ink">
           <LineChartIcon className="h-3.5 w-3.5 text-ink-muted" />
           Line Chart
@@ -872,6 +896,7 @@ function StatTrendPanel({ stat }: { stat: FinPilotStat }) {
         <IconButton aria-label="Expand chart" className="h-8 w-8">
           <Maximize2 className="h-3.5 w-3.5" />
         </IconButton>
+        </div>
       </div>
       <StatTrendChart points={stat.trend} />
       <div className="mt-1 flex items-center justify-center gap-1.5 text-xs text-ink-muted">
@@ -885,6 +910,11 @@ function StatTrendPanel({ stat }: { stat: FinPilotStat }) {
 export function FinPilotPage() {
   const [selectedStatId, setSelectedStatId] = useState(finPilotStats[0].id)
   const selectedStat = finPilotStats.find((stat) => stat.id === selectedStatId) ?? finPilotStats[0]
+
+  useAiPageState('finpilot', {
+    selectedKpiTile: { name: selectedStat.label, value: selectedStat.value, detail: selectedStat.sublabel, direction: selectedStat.tone },
+    trendRange: 'Daily, Last 7 Days',
+  })
 
   return (
     <section className="@container space-y-4">

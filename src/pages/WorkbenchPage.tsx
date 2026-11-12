@@ -1,6 +1,7 @@
 import { clsx } from 'clsx'
 import { Check, Download, Flag, Info, Plus, Search, SlidersHorizontal, X, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { AskAiPopover } from '../components/ui/AskAiPopover'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
@@ -12,6 +13,8 @@ import {
   type IncomingPayment,
   type PayerPriority,
 } from '../data/mockWorkbench'
+import { fifoSelection, outstandingOf } from '../lib/allocation'
+import { useAiPageState } from '../ai/useAiPageState'
 
 type AllocationMode = 'ai' | 'manual'
 
@@ -49,22 +52,6 @@ const priorityClasses: Record<PayerPriority, string> = {
   Low: 'text-ink-muted',
 }
 
-function outstandingOf(invoice: AllocationInvoice) {
-  return invoice.total - invoice.paidSoFar
-}
-
-function fifoSelection(payment: IncomingPayment): Set<string> {
-  let remaining = payment.amount
-  const ids = new Set<string>()
-  for (const invoice of payment.customer.invoices) {
-    if (remaining <= 0) break
-    const outstanding = outstandingOf(invoice)
-    if (outstanding <= 0) continue
-    ids.add(invoice.id)
-    remaining -= outstanding
-  }
-  return ids
-}
 
 function FilterDrawer({
   open,
@@ -417,7 +404,13 @@ function AllocationCard({
       <div className="flex flex-col gap-3 @sm:flex-row @sm:items-start @sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">Outstanding invoices for</p>
-          <p className="mt-0.5 truncate text-base font-semibold text-heading">{payment.customer.name}</p>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <p className="truncate text-base font-semibold text-heading">{payment.customer.name}</p>
+            <AskAiPopover
+              contextLabel={`Allocation for ${payment.id}`}
+              suggestions={['Explain this allocation', 'Is it safe to confirm & post?', 'What should I check first?']}
+            />
+          </div>
           <p className="mt-0.5 text-xs text-ink-muted">
             {payment.customer.type} · Credit limit {payment.customer.creditLimitLabel}
           </p>
@@ -579,6 +572,21 @@ export function WorkbenchPage() {
     return badges
   }, [activeFilters])
 
+  useAiPageState('workbench', {
+    selectedPayment: {
+      id: selectedPayment.id,
+      payer: selectedPayment.payerName,
+      mappedCustomer: selectedPayment.customer.name,
+      amountSgd: selectedPayment.amount,
+    },
+    allocationMode: mode === 'ai' ? 'AI Allocated (FIFO)' : 'Manual',
+    search: query || undefined,
+    activeFilters: activeFilters.matchType.size || activeFilters.aiConfidence !== null
+      ? { matchTypes: [...activeFilters.matchType], minAiConfidencePct: activeFilters.aiConfidence }
+      : undefined,
+    paymentsListed: filtered.map((payment) => payment.id),
+  })
+
   function removeFilter(group: keyof Filters, value: string) {
     setActiveFilters((prev) => {
       if (group === 'aiConfidence') return { ...prev, aiConfidence: null }
@@ -640,7 +648,13 @@ export function WorkbenchPage() {
       <div className="grid grid-cols-1 gap-4 @4xl:grid-cols-[1.3fr_1fr]">
         <Card className="flex min-w-0 flex-col p-4">
           <div className="flex flex-col gap-3 border-b border-border pb-3 @lg:flex-row @lg:items-center @lg:justify-between">
-            <p className="text-base font-semibold text-heading">Incoming payments</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-base font-semibold text-heading">Incoming payments</p>
+              <AskAiPopover
+                contextLabel="Incoming payments"
+                suggestions={['Which payments look risky to auto-match?', 'Flag payer or reference mismatches', 'Summarise by bank']}
+              />
+            </div>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-muted" />

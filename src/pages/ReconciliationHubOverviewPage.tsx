@@ -43,6 +43,7 @@ import {
   type OpenInvoiceStatus,
 } from '../data/mockReconciliationHub'
 import { bankFeedTone } from '../lib/status'
+import { useAiPageState } from '../ai/useAiPageState'
 
 const currency = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value)
@@ -243,6 +244,13 @@ export function ReconciliationHubOverviewPage() {
   }, [tab])
 
   const preview = filtered.slice(0, FEED_PREVIEW_COUNT)
+
+  useAiPageState('hub-overview', {
+    activeTab: tab,
+    fullTableOpen: expanded,
+    search: query || undefined,
+    transactionsInView: filtered.map((item) => item.id),
+  })
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase()

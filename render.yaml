@@ -1,10 +1,16 @@
+# Web service (not a static site): the Reflex AI chat needs a server to hold the OpenAI key.
+# `npm start` serves the built SPA from ./dist and the /api/chat endpoint.
 services:
   - type: web
     name: reconciliation
-    env: static
-    buildCommand: npm run build
-    staticPublishPath: ./dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    runtime: node
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false # set the value in the Render dashboard; never commit it
+      - key: OPENAI_MODEL
+        value: gpt-5.4-mini
+      - key: NODE_VERSION
+        value: "22"

@@ -3,6 +3,8 @@ import { ChevronDown, Download, Mail, MessageCircle, Send } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
+import { useAiPageState } from '../ai/useAiPageState'
+import { AskAiPopover } from '../components/ui/AskAiPopover'
 import { Card } from '../components/ui/Card'
 import { IconButton } from '../components/ui/IconButton'
 import { Table, type TableColumn } from '../components/ui/Table'
@@ -216,6 +218,12 @@ export function CustomerPaymentsPage() {
     return list
   }, [query, typeFilter, bucketFilter, sortBy, totalsByCustomer])
 
+  useAiPageState('payments', {
+    filters: { search: query || undefined, accountType: typeFilter, ageingBucket: bucketFilter, sortedBy: sortBy },
+    customersShown: rows.map((customer) => `${customer.name} (${customer.code})`),
+    expandedCustomers: rows.filter((customer) => expandedKeys.has(customer.id)).map((customer) => customer.name),
+  })
+
   function handleExpandAll() {
     if (expandedKeys.size === rows.length && rows.length > 0) {
       setExpandedKeys(new Set())
@@ -290,7 +298,13 @@ export function CustomerPaymentsPage() {
     <section className="@container space-y-4">
       <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-center @2xl:justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-heading">Customer Outstanding</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-lg font-semibold text-heading">Customer Outstanding</h1>
+            <AskAiPopover
+              contextLabel="Customer Outstanding"
+              suggestions={['Chart the ageing profile', 'Who should we chase first?', 'Which invoices are partially paid?']}
+            />
+          </div>
           <p className="mt-0.5 text-xs text-ink-muted">
             {sgd(grandOutstanding)} outstanding across {customers.length} customers · as of {outstandingAsOf}
           </p>

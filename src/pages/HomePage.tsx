@@ -60,6 +60,7 @@ import {
   type RevenueWeek,
 } from '../data/mockFinPilot'
 import { recentActivityTone } from '../lib/status'
+import { useAiPageState } from '../ai/useAiPageState'
 
 const USER_FIRST_NAME = 'Praburaju'
 
@@ -468,6 +469,11 @@ export function HomePage() {
   const activeFilter = dateFilterOptions.find((option) => option.id === dateFilter)!
   const activeBreakdown = reconciliationBreakdownByFilter[dateFilter]
   const lastSyncedLabel = formatClockTime(new Date(Date.now() - 10 * 60 * 1000))
+
+  useAiPageState('home', {
+    reconciliationChartPeriod: activeFilter.label,
+    reconciliationChartRange: activeBreakdown.rangeLabel,
+  })
 
   useLayoutEffect(() => {
     if (!filterMenuOpen || !filterButtonRef.current) return

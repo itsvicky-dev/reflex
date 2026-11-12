@@ -1,6 +1,8 @@
 import { clsx } from 'clsx'
 import { BarChart3, CalendarDays, ChevronDown, GripVertical, LayoutGrid, UsersRound, X } from 'lucide-react'
 import { useMemo, useState, type DragEvent } from 'react'
+import { useAiPageState } from '../ai/useAiPageState'
+import { AskAiPopover } from '../components/ui/AskAiPopover'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
@@ -227,7 +229,13 @@ function DueNextWeekPanel({
   return (
     <Card className="flex min-h-0 flex-col overflow-hidden @4xl:h-full @4xl:w-[30%] @4xl:shrink-0">
       <div className="shrink-0 border-b border-border px-4 py-3">
-        <p className="text-sm font-semibold text-heading">Due Next Week</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-semibold text-heading">Due Next Week</p>
+          <AskAiPopover
+            contextLabel="Due Next Week"
+            suggestions={['Summarise by payment probability', 'How would the AI place these?', 'Which are most at risk of slipping?']}
+          />
+        </div>
         <p className="text-[11px] text-ink-muted">
           {rows.length} of {totalCount} pending placement
         </p>
@@ -356,6 +364,29 @@ export function ControlTowerPage() {
     ],
     [unassignedRows, placedByBucket],
   )
+
+  const describe = (row: ReceivableRow) => `${row.customer} ${row.invoiceRef} $${row.value.toFixed(2)} (${probabilityLabel[row.probability]})`
+
+  useAiPageState('forecast-board', {
+    aiSuggestionSwitch: aiSuggestOn ? 'ON (cards auto-placed by the AI rule)' : 'OFF (user places cards manually)',
+    view: showChart ? 'Chart View (value per bucket)' : 'Grid View (draggable buckets)',
+    includeOverview,
+    bucketsAsPlacedNow: Object.fromEntries(
+      statusBucketOrder.map((bucket) => [
+        statusBucketLabel[bucket],
+        {
+          receivables: placedByBucket[bucket].length,
+          totalValue: Number(placedByBucket[bucket].reduce((sum, row) => sum + row.value, 0).toFixed(2)),
+          cards: placedByBucket[bucket].map(describe),
+        },
+      ]),
+    ),
+    stillUnplaced: {
+      receivables: unassignedRows.length,
+      totalValue: Number(unassignedRows.reduce((sum, row) => sum + row.value, 0).toFixed(2)),
+      cards: unassignedRows.map(describe),
+    },
+  })
 
   return (
     <section className="@container flex h-full flex-col gap-4">
