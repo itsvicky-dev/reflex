@@ -50,7 +50,7 @@ const suggested: SuggestedItem[] = [
     label: 'Payee Mapping Review',
     icon: Route,
     iconClassName: 'text-pink-500',
-    author: 'Praburaju S',
+    author: 'Abilash Kumar',
     timeAgo: '1 week ago',
     views: 6,
   },

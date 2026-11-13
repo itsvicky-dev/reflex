@@ -2,6 +2,7 @@ import { Check, Moon, Sun } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { CSSProperties } from 'react'
 import { useAppDispatch, useAppSelector } from '../app/hooks'
+import { CurrencySettings } from '../components/settings/CurrencySettings'
 import { Card } from '../components/ui/Card'
 import { ACCENTS, type AccentKey } from '../features/theme/theme'
 import { setAccent, setMode } from '../features/theme/themeSlice'
@@ -69,6 +70,8 @@ export function SettingsPage() {
           </div>
         </div>
       </Card>
+
+      <CurrencySettings />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="p-5">

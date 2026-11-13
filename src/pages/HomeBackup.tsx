@@ -2,7 +2,7 @@ import { ArrowUp, LayoutGrid, Mic, Plus, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const USER_FIRST_NAME = 'Praburaju'
+const USER_FIRST_NAME = 'Abilash'
 
 export function HomePage() {
   const navigate = useNavigate()

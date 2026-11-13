@@ -12,7 +12,7 @@ type Collaborator = {
 }
 
 const collaborators: Collaborator[] = [
-  { id: 'praburaju', name: 'Praburaju S', email: 'praburaju@wele.in', initials: 'PS', color: 'bg-accent/15 text-accent' },
+  { id: 'Abilash', name: 'Abilash Kumar', email: 'Abilash@wele.in', initials: 'PS', color: 'bg-accent/15 text-accent' },
   { id: 'vigneshwari', name: 'Vigneshwari', email: 'vigneshwari@wele.in', initials: 'VG', color: 'bg-teal-500/15 text-teal-600' },
   { id: 'arjun', name: 'Arjun Kumar', email: 'arjun@wele.in', initials: 'AK', color: 'bg-orange-500/15 text-orange-600' },
   { id: 'divya', name: 'Divya Menon', email: 'divya@wele.in', initials: 'DM', color: 'bg-pink-500/15 text-pink-600' },

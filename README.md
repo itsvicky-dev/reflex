@@ -49,6 +49,12 @@ npm run dev                 # app + AI API on http://localhost:5173
 - **New screen or data**: add a section to `src/ai/knowledge.ts`, an entry in `src/ai/pages.ts` (description and suggested prompts), and call `useAiPageState` in the page.
 - **Tone, rules, or which visuals the model may use**: edit `server/prompt.mjs`, then run `npm run ai:smoke`.
 
+## Currency symbol (Settings > Currency)
+
+A demo-only switch: choose **Default, INR (₹), USD ($) or CAD (CA$)** and press **Apply**. Nothing is converted. Every number stays exactly as it is and only the currency symbol (and a written code such as "(USD)") changes, on every screen, chart, tooltip and in the Reflex AI answers. Default leaves each screen as recorded.
+
+It is one small mechanism rather than per-screen code: `src/features/currency/symbol.ts` holds the choice (remembered in `localStorage`, shared across open windows) and the `relabel()` rule, and `domRelabel.ts` applies it to everything on screen (and to anything React renders later) while remembering each original, so Default restores the page exactly. The assistant is told the chosen symbol in its CURRENT VIEW message. Anything inside `data-currency-skip` is left alone (the Settings card shows the symbols themselves). The rule only sees symbols written next to an amount ("$128,450", "₹4.82 Cr", "SGD 8,630", "(₹)") or as a bare code, so new screens work with no extra code as long as amounts are written that way.
+
 ### Deploying (Render)
 
 `render.yaml` defines a **Node web service** (a static site cannot hold the key). Set `OPENAI_API_KEY` in the Render dashboard. `/api/chat` is public once deployed: it is size-limited and rate-limited per client (24 requests per minute) and the model output is capped, but put it behind authentication before sharing the URL widely.

@@ -5,6 +5,7 @@ import { buildKnowledge, describeCustomer } from '../ai/knowledge'
 import { customerIdFromPath, resolveAiPage, type AiPageInfo } from '../ai/pages'
 import { toCopyText } from '../ai/parseBlocks'
 import type { AiConversation, AiMessage } from '../ai/types'
+import { currencyViewLine } from '../features/currency/symbol'
 
 const STORAGE_KEY = 'reflex.ai.conversations.v1'
 const MAX_CONVERSATIONS = 30
@@ -124,10 +125,12 @@ export function AiChatProvider({ children }: { children: ReactNode }) {
   const buildView = useCallback((contextLabel?: string): string => {
     const path = viewPathRef.current
     if (!pageScopeRef.current || !path) {
-      return 'Screen: none shared. Answer from the whole workspace and say which screen each figure comes from.'
+      return ['Screen: none shared. Answer from the whole workspace and say which screen each figure comes from.', currencyViewLine()].filter(Boolean).join('\n')
     }
     const page = resolveAiPage(path)
     const lines = [`Screen: ${page.title} (route ${path})`, `What is on screen: ${page.description}`]
+    const currencyLine = currencyViewLine()
+    if (currencyLine) lines.push(currencyLine)
     if (contextLabel) {
       lines.push(`The user launched the assistant from the "${contextLabel}" widget. Unless they say otherwise, the question is about that widget.`)
     }

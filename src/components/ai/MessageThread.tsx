@@ -3,6 +3,7 @@ import { AlertCircle, Check, Copy, LayoutGrid, Loader2, RefreshCw, Sparkles } fr
 import { useEffect, useRef, useState } from 'react'
 import { toCopyText } from '../../ai/parseBlocks'
 import type { AiMessage } from '../../ai/types'
+import { relabel, useSymbolChoice } from '../../features/currency/symbol'
 import { RichMessage } from './rich/RichMessage'
 
 const THINKING_STEPS = ['Reading your workspace data', 'Analysing figures and trends', 'Preparing your answer']
@@ -65,6 +66,7 @@ function AssistantMessage({
   const streaming = message.status === 'streaming'
   const failed = message.status === 'error'
   const stopped = message.status === 'stopped'
+  const symbolChoice = useSymbolChoice()
 
   return (
     <div className="flex gap-2.5">
@@ -104,7 +106,7 @@ function AssistantMessage({
 
         {!streaming && message.content.length > 0 && (
           <div className="-ml-1.5 mt-1.5 flex items-center gap-0.5">
-            <CopyButton text={toCopyText(message.content)} />
+            <CopyButton text={relabel(toCopyText(message.content), symbolChoice)} />
             {isLast && (
               <button
                 type="button"

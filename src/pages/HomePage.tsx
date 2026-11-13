@@ -62,7 +62,7 @@ import {
 import { recentActivityTone } from '../lib/status'
 import { useAiPageState } from '../ai/useAiPageState'
 
-const USER_FIRST_NAME = 'Praburaju'
+const USER_FIRST_NAME = 'Abilash'
 
 function getDayPeriod(hour: number) {
   if (hour < 12) return 'morning'
@@ -713,32 +713,32 @@ export function HomePage() {
       <div className="grid gap-4 @4xl:grid-cols-12">
         <Card className="flex min-w-0 flex-col p-4 @4xl:col-span-4">
           <div className="flex items-center justify-between gap-2">
-          <CardHeader
-            icon={BarChart3}
-            title="Outstanding by Ageing"
-            aiSuggestions={['Which ageing bucket grew the most?', 'Show customers in 90+ days', 'Summarize collection risk']}
-          />
-          <Button
-            type="button"
-            variant='accent-outline'
-            onClick={() => navigate('/reports')}
-            className="flex items-center gap-1 !py-1 text-xs !px-1"
-          >
-            View Ageing Report <ArrowRight className="h-3 w-3" />
-          </Button>
+            <CardHeader
+              icon={BarChart3}
+              title="Outstanding by Ageing"
+              aiSuggestions={['Which ageing bucket grew the most?', 'Show customers in 90+ days', 'Summarize collection risk']}
+            />
+            <Button
+              type="button"
+              variant='accent-outline'
+              onClick={() => navigate('/reports')}
+              className="flex items-center gap-1 !py-1 text-xs !px-1"
+            >
+              View Ageing Report <ArrowRight className="h-3 w-3" />
+            </Button>
           </div>
           <div className="mt-3 flex flex-1 items-center gap-3">
             <ul className="flex-1 space-y-2.5 text-xs">
               {outstandingAgeing.map((bucket) => (
                 <li key={bucket.id} className="grid grid-cols-[1fr_auto] items-center gap-x-3">
                   <div className='w-full'>
-                  <span className="truncate text-ink-muted">{bucket.label}</span>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
-                    <div
-                      className={clsx('h-full rounded-full', ageingBarClasses[bucket.tone])}
-                      style={{ width: `${(bucket.amount / maxAgeingAmount) * 100}%` }}
-                    />
-                  </div>
+                    <span className="truncate text-ink-muted">{bucket.label}</span>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
+                      <div
+                        className={clsx('h-full rounded-full', ageingBarClasses[bucket.tone])}
+                        style={{ width: `${(bucket.amount / maxAgeingAmount) * 100}%` }}
+                      />
+                    </div>
                   </div>
                   <span className="text-right font-semibold text-heading">{currency(bucket.amount)}</span>
                 </li>
