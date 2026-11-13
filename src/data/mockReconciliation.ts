@@ -40,11 +40,11 @@ export type ReportItem = {
 }
 
 export const transactions: Transaction[] = [
-  { id: 'TXN-8841', date: 'Jul 19', description: 'Wire transfer - Acme Corp', source: 'Bank Feed', amount: '$42,500.00', status: 'Matched' },
-  { id: 'TXN-8842', date: 'Jul 19', description: 'ACH payment - Northwind', source: 'Ledger', amount: '$8,120.50', status: 'Matched' },
+  { id: 'TXN-8841', date: 'Jul 19', description: 'Wire transfer - Hartwell Industrial Supply', source: 'Bank Feed', amount: '$42,500.00', status: 'Matched' },
+  { id: 'TXN-8842', date: 'Jul 19', description: 'ACH payment - Brightwater Foods Inc.', source: 'Ledger', amount: '$8,120.50', status: 'Matched' },
   { id: 'TXN-8843', date: 'Jul 19', description: 'Card settlement batch #221', source: 'Payment Gateway', amount: '$1,204.10', status: 'Pending' },
-  { id: 'TXN-8844', date: 'Jul 18', description: 'Refund - Contoso Ltd', source: 'Ledger', amount: '$620.00', status: 'Unmatched' },
-  { id: 'TXN-8845', date: 'Jul 18', description: 'Wire transfer - Globex', source: 'Bank Feed', amount: '$15,300.00', status: 'Matched' },
+  { id: 'TXN-8844', date: 'Jul 18', description: 'Refund - Calloway Textiles Ltd', source: 'Ledger', amount: '$620.00', status: 'Unmatched' },
+  { id: 'TXN-8845', date: 'Jul 18', description: 'Wire transfer - Meridian Components', source: 'Bank Feed', amount: '$15,300.00', status: 'Matched' },
   { id: 'TXN-8846', date: 'Jul 18', description: 'Payroll disbursement', source: 'Ledger', amount: '$96,410.75', status: 'Matched' },
   { id: 'TXN-8847', date: 'Jul 17', description: 'Card settlement batch #220', source: 'Payment Gateway', amount: '$980.40', status: 'Unmatched' },
 ]

@@ -97,7 +97,7 @@ export const collectionsSummary = {
   percentOfExpected: 78,
   insight: {
     lead: 'Collections are ahead of schedule.',
-    highlight: 'ABC Industries',
+    highlight: 'Kaveri Precision',
     tail: 'is expected to clear',
     amount: '₹72 Lakhs',
     suffix: 'before 4 PM.',
@@ -131,7 +131,7 @@ export const cashFlowForecast = {
   upcomingLargeInflows: '₹4.35 Cr',
   insight: {
     lead: 'Cash inflow is expected to peak on 18 May due to large payments from',
-    links: ['ABC Industries', 'XYZ Corp'],
+    links: ['Kaveri Precision', 'Coastal Polymers'],
     detail:
       'Together these two payments account for nearly 60% of the peak-day inflow, and the forecast keeps this week 21% above the previous 7 days despite the Monday dip.',
   },
@@ -186,10 +186,10 @@ export type RiskMatrixChartData = {
 export const customerRiskMatrix = {
   criticalAccountsCount: 3,
   totalAtRiskCr: '₹15.8 Cr',
-  topAccount: { name: 'ABC Industries', outstanding: '₹9.2 Cr', delayDays: 95 },
+  topAccount: { name: 'Kaveri Precision', outstanding: '₹9.2 Cr', delayDays: 95 },
   insight: {
     lead: 'Immediate collections escalation is recommended for',
-    links: ['ABC Industries', 'Global Steel Ltd'],
+    links: ['Kaveri Precision', 'Amba Steel Ltd'],
     detail:
       'Both accounts have crossed 90 days past due and together make up ₹15.8 Cr of outstanding exposure — prioritizing outreach here could cut the total at-risk balance nearly in half.',
   },
@@ -205,16 +205,16 @@ export const customerRiskMatrix = {
     yTicks: [0, 2, 4, 6, 8, 10],
     criticalZone: { xMin: 75, yMin: 5.5, label: 'Critical zone', sublabel: 'High delay + high amount' },
     bubbles: [
-      { id: 'abc-industries', name: 'ABC Industries', delayDays: 95, outstandingCr: 9.2, revenueContribution: 100, risk: 'high' },
-      { id: 'global-steel', name: 'Global Steel Ltd', delayDays: 90, outstandingCr: 6.6, revenueContribution: 55, risk: 'high' },
-      { id: 'nova-tech', name: 'Nova Tech Pvt. Ltd.', delayDays: 45, outstandingCr: 7.0, revenueContribution: 50, risk: 'medium' },
-      { id: 'xyz-motors', name: 'XYZ Motors', delayDays: 35, outstandingCr: 4.2, revenueContribution: 40, risk: 'medium' },
-      { id: 'prime-logistics', name: 'Prime Logistics', delayDays: 63, outstandingCr: 3.6, revenueContribution: 38, risk: 'medium' },
-      { id: 'delta-energy', name: 'Delta Energy', delayDays: 88, outstandingCr: 2.5, revenueContribution: 35, risk: 'medium' },
-      { id: 'bright-retail', name: 'Bright Retail', delayDays: 8, outstandingCr: 1.2, revenueContribution: 22, risk: 'low' },
-      { id: 'eco-packaging', name: 'Eco Packaging', delayDays: 25, outstandingCr: 0.8, revenueContribution: 18, risk: 'low' },
-      { id: 'greenfield-foods', name: 'GreenField Foods', delayDays: 40, outstandingCr: 1.0, revenueContribution: 20, risk: 'low' },
-      { id: 'swift-electronics', name: 'Swift Electronics', delayDays: 78, outstandingCr: 0.5, revenueContribution: 16, risk: 'low' },
+      { id: 'kaveri-precision', name: 'Kaveri Precision', delayDays: 95, outstandingCr: 9.2, revenueContribution: 100, risk: 'high' },
+      { id: 'amba-steel', name: 'Amba Steel Ltd', delayDays: 90, outstandingCr: 6.6, revenueContribution: 55, risk: 'high' },
+      { id: 'pragati-tech', name: 'Pragati Tech Pvt. Ltd.', delayDays: 45, outstandingCr: 7.0, revenueContribution: 50, risk: 'medium' },
+      { id: 'shakti-motors', name: 'Shakti Motors', delayDays: 35, outstandingCr: 4.2, revenueContribution: 40, risk: 'medium' },
+      { id: 'rajdhani-freight', name: 'Rajdhani Freight', delayDays: 63, outstandingCr: 3.6, revenueContribution: 38, risk: 'medium' },
+      { id: 'surya-power', name: 'Surya Power', delayDays: 88, outstandingCr: 2.5, revenueContribution: 35, risk: 'medium' },
+      { id: 'lakshmi-stores', name: 'Lakshmi Stores', delayDays: 8, outstandingCr: 1.2, revenueContribution: 22, risk: 'low' },
+      { id: 'veda-pack', name: 'Veda Pack', delayDays: 25, outstandingCr: 0.8, revenueContribution: 18, risk: 'low' },
+      { id: 'annadata-foods', name: 'Annadata Foods', delayDays: 40, outstandingCr: 1.0, revenueContribution: 20, risk: 'low' },
+      { id: 'vasant-electronics', name: 'Vasant Electronics', delayDays: 78, outstandingCr: 0.5, revenueContribution: 16, risk: 'low' },
     ] satisfies RiskBubble[],
   } satisfies RiskMatrixChartData,
 }
@@ -321,7 +321,7 @@ export const aiExplanation = {
       iconTone: 'rose',
       badgeTone: 'danger',
       title: 'Decline in Top 5 Customer Revenue',
-      description: 'Revenue from top 5 customers dropped by ₹1.32 Cr (-24.6%) primarily due to reduced orders from ABC Corp. and Global Tech.',
+      description: 'Revenue from top 5 customers dropped by ₹1.32 Cr (-24.6%) primarily due to reduced orders from Kaveri Precision and Pragati Tech.',
       delta: '-24.6%',
     },
     {

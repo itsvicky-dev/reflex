@@ -82,7 +82,7 @@ export function RiskMatrixChart({ chart }: { chart: RiskMatrixChartData }) {
         />
         <text
           x={WIDTH - PAD.right - 6}
-          y={PAD.top + 14}
+          y={zoneY - 17}
           textAnchor="end"
           fontSize={9}
           fontWeight={700}
@@ -90,7 +90,7 @@ export function RiskMatrixChart({ chart }: { chart: RiskMatrixChartData }) {
         >
           {chart.criticalZone.label.toUpperCase()}
         </text>
-        <text x={WIDTH - PAD.right - 6} y={PAD.top + 26} textAnchor="end" fontSize={8} fill="var(--color-chart-critical)">
+        <text x={WIDTH - PAD.right - 6} y={zoneY - 6} textAnchor="end" fontSize={8} fill="var(--color-chart-critical)">
           {chart.criticalZone.sublabel}
         </text>
 

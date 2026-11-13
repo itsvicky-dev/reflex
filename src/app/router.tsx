@@ -55,7 +55,7 @@ export const router = createBrowserRouter([
     ),
     errorElement: <ErrorPage />,
     children: [
-      { index: true, element: <Navigate to="/overview" replace /> },
+      { index: true, element: <Navigate to="/home" replace /> },
       { path: 'overview', element: <OverviewPage /> },
       { path: 'home', element: <HomePage /> },
       { path: 'content', element: <AllContentPage /> },

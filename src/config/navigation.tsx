@@ -49,8 +49,26 @@ function svgIcon(svg: string): IconComponent {
 }
 
 export type NavLayoutConfig = { sidebarCollapsed?: boolean; aiPanelOpen?: boolean }
-export type NavLink = { kind: 'link'; to: string; label: string; icon: IconComponent; badge?: string; layout?: NavLayoutConfig }
-export type NavGroup = { kind: 'group'; id: string; label: string; icon: IconComponent; defaultOpen?: boolean; children: NavLink[] }
+export type NavLink = {
+  kind: 'link'
+  to: string
+  label: string
+  icon: IconComponent
+  badge?: string
+  layout?: NavLayoutConfig
+  /** Not shown in the sidebar (page is still routable). Remove the flag to bring it back once the page is built. */
+  hidden?: boolean
+}
+export type NavGroup = {
+  kind: 'group'
+  id: string
+  label: string
+  icon: IconComponent
+  defaultOpen?: boolean
+  children: NavLink[]
+  /** Hides the whole group (and its pages) from the sidebar. */
+  hidden?: boolean
+}
 export type NavAction = { kind: 'action'; id: string; label: string; icon: IconComponent }
 export type NavEntry = NavLink | NavGroup | NavAction
 
@@ -68,7 +86,7 @@ export const quickAccess: { id: string; label: string; icon: LucideIcon }[] = [
   { id: 'agents', label: 'Agents', icon: Bot },
 ]
 
-export const productsNav: NavEntry[] = [
+const allProductsNav: NavEntry[] = [
   {
     kind: 'group',
     id: 'reconciliation-hub',
@@ -78,8 +96,8 @@ export const productsNav: NavEntry[] = [
     children: [
       { kind: 'link', to: '/reconciliation-hub/overview', label: 'Overview', icon: LineChart },
       { kind: 'link', to: '/reconciliation-hub/workbench', label: 'Workbench', icon: Wrench },
-      { kind: 'link', to: '/reconciliation-hub/payee-mapping', label: 'Payee Mapping', icon: Route },
-      { kind: 'link', to: '/reconciliation-hub/bank-statements', label: 'Bank Statements', icon: Landmark },
+      { kind: 'link', to: '/reconciliation-hub/payee-mapping', label: 'Payee Mapping', icon: Route, hidden: true },
+      { kind: 'link', to: '/reconciliation-hub/bank-statements', label: 'Bank Statements', icon: Landmark, hidden: true },
     ],
   },
   {
@@ -90,14 +108,15 @@ export const productsNav: NavEntry[] = [
     children: [
       // { kind: 'link', to: '/customer-intelligence/overview', label: 'Overview', icon: LineChart },
       { kind: 'link', to: '/customer-intelligence/customers', label: 'Customers', icon: Contact },
-      { kind: 'link', to: '/customer-intelligence/invoices', label: 'Invoices', icon: FileText },
+      { kind: 'link', to: '/customer-intelligence/invoices', label: 'Invoices', icon: FileText, hidden: true },
       { kind: 'link', to: '/customer-intelligence/payments', label: 'Payments', icon: CreditCard },
-      { kind: 'link', to: '/customer-intelligence/prediction', label: 'Prediction', icon: TrendingUp },
+      { kind: 'link', to: '/customer-intelligence/prediction', label: 'Prediction', icon: TrendingUp, hidden: true },
     ],
   },
   {
     kind: 'group',
     id: 'invoice-intelligence',
+    hidden: true,
     label: 'Invoice Intelligence',
     icon: FileSearch,
     children: [
@@ -109,6 +128,7 @@ export const productsNav: NavEntry[] = [
   {
     kind: 'group',
     id: 'intellitrend',
+    hidden: true,
     label: 'Intelli Trend',
     icon: LineChart,
     children: [
@@ -119,6 +139,7 @@ export const productsNav: NavEntry[] = [
   {
     kind: 'group',
     id: 'experiment',
+    hidden: true,
     label: 'Experiment',
     icon: FlaskConical,
     children: [
@@ -132,12 +153,14 @@ export const productsNav: NavEntry[] = [
     label: 'Data',
     icon: Database,
     to: '/data',
+    hidden: true,
   },
   {
     kind: 'link',
     label: 'Users',
     icon: Users,
     to: '/users',
+    hidden: true,
   },
   // {
   //   kind: 'link',
@@ -165,6 +188,16 @@ export const productsNav: NavEntry[] = [
   // },
 ]
 
+/** What the sidebar renders: hidden pages are dropped, and so are groups left with no visible page. */
+function visibleEntries(entries: NavEntry[]): NavEntry[] {
+  return entries
+    .filter((entry) => entry.kind === 'action' || !entry.hidden)
+    .map((entry) => (entry.kind === 'group' ? { ...entry, children: entry.children.filter((child) => !child.hidden) } : entry))
+    .filter((entry) => entry.kind !== 'group' || entry.children.length > 0)
+}
+
+export const productsNav: NavEntry[] = visibleEntries(allProductsNav)
+
 export const bottomUtility: { id: string; label: string; icon: LucideIcon; to?: string }[] = [
   { id: 'settings', label: 'Settings', icon: SettingsIcon, to: '/settings' },
   { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -183,7 +216,7 @@ function collect(entries: NavEntry[], out: NavLink[]) {
 export const allNavLinks: NavLink[] = (() => {
   const out: NavLink[] = []
   collect(topNav, out)
-  collect(productsNav, out)
+  collect(allProductsNav, out)
   for (const item of bottomUtility) {
     if (item.to) out.push({ kind: 'link', to: item.to, label: item.label, icon: item.icon })
   }

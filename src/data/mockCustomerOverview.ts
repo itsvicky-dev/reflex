@@ -10,14 +10,14 @@ export type CustomerOverviewProfile = {
 }
 
 export const customerOverviewProfile: CustomerOverviewProfile = {
-  name: 'ABC Industries Pvt. Ltd.',
+  name: 'Kaveri Precision Pvt. Ltd.',
   badge: 'Strategic Customer',
   industry: 'Manufacturing',
   businessUnit: 'Industrial Supplies',
   accountManager: 'Ramesh N.',
   customerId: 'CUST-000345',
   relationshipSince: 'Aug 2019',
-  gstin: '29AACCA1234A1Z5',
+  gstin: '29AAKCK4826H1ZR',
 }
 
 export const customerOverviewStats = {
@@ -101,7 +101,7 @@ export const paymentBehaviorStats = {
 
 export const aiExecutiveSummary = {
   paragraphs: [
-    'ABC Industries has been a customer since 2019 and contributes 8.2% of annual revenue. Payment performance has improved over the past three months, reducing the average payment cycle from 41 days to 35 days.',
+    'Kaveri Precision has been a customer since 2019 and contributes 8.2% of annual revenue. Payment performance has improved over the past three months, reducing the average payment cycle from 41 days to 35 days.',
     'The customer currently has ₹1.28 Cr in outstanding receivables with a 94% probability of paying within the next seven days.',
     'Overall financial health is Healthy, and the current credit policy is recommended to continue.',
   ],

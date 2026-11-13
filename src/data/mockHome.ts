@@ -50,9 +50,9 @@ export type RecentActivityItem = {
 }
 
 export const recentReconciliationActivity: RecentActivityItem[] = [
-  { id: 'act-1', customer: 'ABC Foods', invoiceRef: 'INV-2034', amount: 4200, method: 'PayNow', status: 'Matched', updatedAt: '10:42 AM' },
+  { id: 'act-1', customer: 'Sin Hock Foods', invoiceRef: 'INV-2034', amount: 4200, method: 'PayNow', status: 'Matched', updatedAt: '10:42 AM' },
   { id: 'act-2', customer: 'John Tan', invoiceRef: 'INV-2031', amount: 1850, method: 'PayNow', status: 'Partial', updatedAt: '10:28 AM' },
-  { id: 'act-3', customer: 'XYZ Mart', amount: 3400, method: 'Transfer', status: 'Unmatched', updatedAt: '10:15 AM' },
+  { id: 'act-3', customer: 'Heng Huat Minimart', amount: 3400, method: 'Transfer', status: 'Unmatched', updatedAt: '10:15 AM' },
   // { id: 'act-4', customer: 'Fresh Kitchen', invoiceRef: 'INV-2028', amount: 2100, method: 'COD', status: 'Cleared', updatedAt: '09:58 AM' },
   // { id: 'act-5', customer: 'Green Leaf Cafe', invoiceRef: 'INV-2025', amount: 1300, method: 'PayNow', status: 'Matched', updatedAt: '09:41 AM' },
 ]

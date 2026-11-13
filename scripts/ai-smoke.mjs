@@ -47,7 +47,7 @@ const CASES = [
   { id: 'finpilot-revenue', page: '/finance-navigator', q: 'Explain the revenue decline and its root causes', expect: { visual: true } },
   { id: 'finpilot-risk', page: '/finance-navigator', q: 'Which customers are in the critical risk zone?' },
   { id: 'board-prob', page: '/control-tower', q: "Summarise next week's receivables by payment probability", expect: { visual: true } },
-  { id: 'board-live', page: '/control-tower', q: 'What is committed vs doubtful right now?', must: [/1\.00/, /0\.29/], live: { aiSuggestion: false, placements: { committed: ['ABC Industries INV-10234 $0.62', 'XYZ Corp INV-10241 $0.38'], probable: [], possible: [], doubtful: ['Om Enterprises INV-10270 $0.29'] }, unplaced: 5 } },
+  { id: 'board-live', page: '/control-tower', q: 'What is committed vs doubtful right now?', must: [/1\.00/, /0\.29/], live: { aiSuggestion: false, placements: { committed: ['Kaveri Precision INV-10234 $0.62', 'Coastal Polymers INV-10241 $0.38'], probable: [], possible: [], doubtful: ['Om Enterprises INV-10270 $0.29'] }, unplaced: 5 } },
   { id: 'hub-review', page: '/reconciliation-hub/overview', q: 'Which transactions need review and why?', expect: { visual: true } },
   {
     id: 'workbench-selected',

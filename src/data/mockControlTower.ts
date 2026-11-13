@@ -135,23 +135,23 @@ export type ReceivableRow = {
 }
 
 export const dueNextWeekReceivables: ReceivableRow[] = [
-  { id: 'due-1', customer: 'ABC Industries', invoiceRef: 'INV-10234', bucket: '0-3 days', date: '24 Jul', day: 'Fri', value: 0.62, probability: 'most-likely' },
-  { id: 'due-2', customer: 'XYZ Corp', invoiceRef: 'INV-10241', bucket: '0-3 days', date: '24 Jul', day: 'Fri', value: 0.38, probability: 'most-likely' },
-  { id: 'due-3', customer: 'Reliance Traders', invoiceRef: 'INV-10256', bucket: '4-7 days', date: '25 Jul', day: 'Sat', value: 0.45, probability: 'likely' },
+  { id: 'due-1', customer: 'Kaveri Precision', invoiceRef: 'INV-10234', bucket: '0-3 days', date: '24 Jul', day: 'Fri', value: 0.62, probability: 'most-likely' },
+  { id: 'due-2', customer: 'Coastal Polymers', invoiceRef: 'INV-10241', bucket: '0-3 days', date: '24 Jul', day: 'Fri', value: 0.38, probability: 'most-likely' },
+  { id: 'due-3', customer: 'Rathod Traders', invoiceRef: 'INV-10256', bucket: '4-7 days', date: '25 Jul', day: 'Sat', value: 0.45, probability: 'likely' },
   { id: 'due-4', customer: 'Sterling Textiles', invoiceRef: 'INV-10262', bucket: '4-7 days', date: '26 Jul', day: 'Sun', value: 0.71, probability: 'most-likely' },
   { id: 'due-5', customer: 'Om Enterprises', invoiceRef: 'INV-10270', bucket: '4-7 days', date: '27 Jul', day: 'Mon', value: 0.29, probability: 'not-expected' },
   { id: 'due-6', customer: 'Kumar & Sons', invoiceRef: 'INV-10281', bucket: '4-7 days', date: '28 Jul', day: 'Tue', value: 0.54, probability: 'likely' },
-  { id: 'due-7', customer: 'Vertex Logistics', invoiceRef: 'INV-10288', bucket: '4-7 days', date: '29 Jul', day: 'Wed', value: 0.82, probability: 'most-likely' },
+  { id: 'due-7', customer: 'Vijaya Transport Co.', invoiceRef: 'INV-10288', bucket: '4-7 days', date: '29 Jul', day: 'Wed', value: 0.82, probability: 'most-likely' },
   { id: 'due-8', customer: 'Bharat Steel Co.', invoiceRef: 'INV-10295', bucket: '4-7 days', date: '30 Jul', day: 'Thu', value: 0.36, probability: 'likely' },
 ]
 
 export const overdueReceivables: ReceivableRow[] = [
-  { id: 'od-1', customer: 'Nova Chemicals', invoiceRef: 'INV-09871', bucket: '1-15 days', date: '15 Jul', day: 'Wed', value: 0.48, probability: 'likely' },
+  { id: 'od-1', customer: 'Saraswati Chemicals', invoiceRef: 'INV-09871', bucket: '1-15 days', date: '15 Jul', day: 'Wed', value: 0.48, probability: 'likely' },
   { id: 'od-2', customer: 'Krishna Motors', invoiceRef: 'INV-09880', bucket: '1-15 days', date: '17 Jul', day: 'Fri', value: 0.33, probability: 'most-likely' },
-  { id: 'od-3', customer: 'ABC Industries', invoiceRef: 'INV-09802', bucket: '16-30 days', date: '05 Jul', day: 'Sun', value: 0.91, probability: 'not-expected' },
-  { id: 'od-4', customer: 'Global Freight', invoiceRef: 'INV-09795', bucket: '16-30 days', date: '02 Jul', day: 'Thu', value: 0.27, probability: 'likely' },
+  { id: 'od-3', customer: 'Kaveri Precision', invoiceRef: 'INV-09802', bucket: '16-30 days', date: '05 Jul', day: 'Sun', value: 0.91, probability: 'not-expected' },
+  { id: 'od-4', customer: 'Konkan Freight Services', invoiceRef: 'INV-09795', bucket: '16-30 days', date: '02 Jul', day: 'Thu', value: 0.27, probability: 'likely' },
   { id: 'od-5', customer: 'Sunrise Apparel', invoiceRef: 'INV-09710', bucket: '31-45 days', date: '18 Jun', day: 'Thu', value: 0.58, probability: 'not-expected' },
-  { id: 'od-6', customer: 'Metro Pharma', invoiceRef: 'INV-09688', bucket: '31-45 days', date: '12 Jun', day: 'Fri', value: 0.4, probability: 'likely' },
+  { id: 'od-6', customer: 'Dhanvantari Pharma', invoiceRef: 'INV-09688', bucket: '31-45 days', date: '12 Jun', day: 'Fri', value: 0.4, probability: 'likely' },
   { id: 'od-7', customer: 'Orion Plastics', invoiceRef: 'INV-09602', bucket: '46-60 days', date: '28 May', day: 'Thu', value: 0.22, probability: 'not-expected' },
 ]
 
@@ -175,7 +175,7 @@ export const controlTowerLogs: ControlTowerLog[] = [
     time: '09:28 AM',
     category: 'risk',
     title: 'Customer Risk Changed',
-    description: 'ABC Industries moved from Amber to Red. Risk score increased from 62 to 87.',
+    description: 'Kaveri Precision moved from Amber to Red. Risk score increased from 62 to 87.',
   },
   {
     id: 'log-4',

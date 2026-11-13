@@ -79,8 +79,8 @@ export function ErrorPage({ error: errorProp, notFound }: { error?: unknown; not
             <ArrowLeft className="h-3.5 w-3.5" />
             Go back
           </Button>
-          <Button size="sm" onClick={() => navigate('/overview')}>
-            Back to Overview
+          <Button size="sm" onClick={() => navigate('/home')}>
+            Back to Home
             <ArrowRight className="h-3.5 w-3.5" />
           </Button>
         </div>

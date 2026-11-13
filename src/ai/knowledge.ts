@@ -764,7 +764,7 @@ function buildCustomer360(): string {
   const p = customer360
   return section(
     'SCREEN: Customer 360 detail panels (route /customer-intelligence/overview/<customer id>)',
-    "On a customer's detail page the header (name, code, city, account manager, health score, outstanding, overdue, upcoming) comes from the customer directory above and belongs to the selected customer. The detailed panels below it (financial health, risk, relationship, payment behaviour, history) show the sample profile of ABC Industries Pvt. Ltd. (INR). If asked about those panels for another customer, say the panels currently show the ABC Industries profile.",
+    "On a customer's detail page the header (name, code, city, account manager, health score, outstanding, overdue, upcoming) comes from the customer directory above and belongs to the selected customer. The detailed panels below it (financial health, risk, relationship, payment behaviour, history) show the sample profile of Kaveri Precision Pvt. Ltd. (INR). If asked about those panels for another customer, say the panels currently show the Kaveri Precision profile.",
     widget('Profile', JSON.stringify(p.customerOverviewProfile)),
     widget('Headline stats', JSON.stringify(p.customerOverviewStats)),
     widget('Financial health', JSON.stringify(p.financialHealth)),

@@ -113,7 +113,7 @@ const customerDetail: AiPageInfo = {
   id: 'customer-detail',
   title: 'Customer Intelligence · Customer 360',
   description:
-    'Customer 360 detail view: header (health score, outstanding, overdue, upcoming) for the selected customer, then Summary, Recommended Actions, AI Executive Summary, Financial Health, Risk Assessment, Business Relationship, Payment Behaviour (heat map), Revenue Trend, Payment History and Disputes panels. The header numbers belong to the selected customer; the detailed panels below show the sample profile of ABC Industries Pvt. Ltd.',
+    'Customer 360 detail view: header (health score, outstanding, overdue, upcoming) for the selected customer, then Summary, Recommended Actions, AI Executive Summary, Financial Health, Risk Assessment, Business Relationship, Payment Behaviour (heat map), Revenue Trend, Payment History and Disputes panels. The header numbers belong to the selected customer; the detailed panels below show the sample profile of Kaveri Precision Pvt. Ltd.',
   suggestions: [
     { label: 'Summarise this customer’s payment risk', category: 'Risk' },
     { label: 'What should we do about their overdue balance?', category: 'Action' },

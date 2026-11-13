@@ -46,6 +46,19 @@ const sgd = (value: number) =>
 
 const signed = (value: number) => `+${value.toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
+// The supplier issuing these invoices, and where each customer is billed (demo data).
+const SELLER = { name: 'Lion City Provisions Pte Ltd', address: '28 Defu Lane 10, #01-05, Singapore 539213' }
+
+const BILLING_ADDRESS: Record<string, string> = {
+  'Golden Wok Pte Ltd': '45 Kallang Pudding Road, #01-12, Singapore 349317',
+  'The Chop Chop Grill': '18 Tai Seng Street, #02-01, Singapore 539775',
+  'Curry Leaf Bistro': '76 Serangoon Garden Way, Singapore 555961',
+  'Mrs. Chen (Blk 214)': 'Blk 214 Bedok North Street 1, #08-123, Singapore 460214',
+  'Nasi Kandar House': '18 Jalan Wong Ah Fook, 80000 Johor Bahru, Malaysia',
+}
+
+const billingAddress = (customerName: string) => BILLING_ADDRESS[customerName] ?? 'Singapore'
+
 const priorityClasses: Record<PayerPriority, string> = {
   High: 'font-semibold text-heading',
   Medium: 'font-medium text-ink',
@@ -259,12 +272,12 @@ function InvoicePdfDrawer({
               <div>
                 <p className="font-semibold uppercase tracking-wide text-ink-muted">Bill to</p>
                 <p className="mt-1 font-medium text-heading">{customerName}</p>
-                <p className="text-ink-muted">123 Business Park, Singapore</p>
+                <p className="text-ink-muted">{billingAddress(customerName)}</p>
               </div>
               <div className="text-right">
                 <p className="font-semibold uppercase tracking-wide text-ink-muted">From</p>
-                <p className="mt-1 font-medium text-heading">Your Company Pte Ltd</p>
-                <p className="text-ink-muted">456 Supplier Road, Singapore</p>
+                <p className="mt-1 font-medium text-heading">{SELLER.name}</p>
+                <p className="text-ink-muted">{SELLER.address}</p>
               </div>
             </div>
 
